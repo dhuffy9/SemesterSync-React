@@ -11,8 +11,10 @@ export default function AppSidebar() {
 				</p>
 			</SidebarHeader>
 			<SidebarContent className="p-2">
-        <Button><Plus /> New Course</Button>
-      </SidebarContent>
+				<Button>
+					<Plus /> New Course
+				</Button>
+			</SidebarContent>
 		</Sidebar>
 	);
 }

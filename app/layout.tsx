@@ -33,9 +33,7 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<TooltipProvider>
-					<SidebarProvider>
-						{children}
-						</SidebarProvider>
+					<SidebarProvider>{children}</SidebarProvider>
 				</TooltipProvider>
 			</body>
 		</html>
