@@ -1,8 +1,11 @@
+import AppSidebar from "@/components/app-sidebar";
+
 export default function Page() {
 	return (
 		<div>
+				<AppSidebar />
 			<main>
-				<h1>SemesterSync</h1>
+				
 			</main>
 		</div>
 	);

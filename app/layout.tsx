@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -16,7 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: "SemesterSync",
-	description: "An easy to use tool to create and manage your semesters schedules.",
+	description:
+		"An easy to use tool to create and manage your semesters schedules.",
 };
 
 export default function RootLayout({
@@ -29,7 +32,11 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				{children}
+				<TooltipProvider>
+					<SidebarProvider>
+						{children}
+						</SidebarProvider>
+				</TooltipProvider>
 			</body>
 		</html>
 	);
