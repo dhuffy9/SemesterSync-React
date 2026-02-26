@@ -4,19 +4,19 @@ import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { Checkbox } from "./ui/checkbox";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
 } from "./ui/collapsible";
 import { Field, FieldLabel } from "./ui/field";
 import { ScrollArea } from "./ui/scroll-area";
@@ -31,8 +31,6 @@ export default function DisclaimerModal() {
 
 		setDismissedDisclaimer(didDismiss);
 		setOpen(!didDismiss);
-
-		console.log(didDismiss);
 	}, []);
 
 	useEffect(() => {
@@ -41,8 +39,6 @@ export default function DisclaimerModal() {
 			dismissedDisclaimer.toString(),
 		);
 	}, [dismissedDisclaimer]);
-
-	console.log({ dismissedDisclaimer, open });
 
 	return (
 		<AlertDialog open={open}>
