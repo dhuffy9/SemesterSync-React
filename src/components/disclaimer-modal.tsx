@@ -49,9 +49,9 @@ export default function DisclaimerModal() {
 
 				<ScrollArea className="max-h-[70dvh]">
 					<div className="gap-4 flex flex-col">
-            <h2 className="font-bold text-xl">
-              This website is not affiliated with the school
-            </h2>
+						<h2 className="font-bold text-xl">
+							This website is not affiliated with the school
+						</h2>
 
 						<Collapsible
 							className="bg-accent rounded-md p-2"
@@ -106,11 +106,10 @@ export default function DisclaimerModal() {
 						</Collapsible>
 					</div>
 
-          <AlertDialogDescription className="pt-2">
-            If you find bugs or want to suggest new features please email{" "}
-            <MailTo email="djh61@pct.edu" /> or{" "}
-            <MailTo email="nxt19@pct.edu" />
-          </AlertDialogDescription>
+					<AlertDialogDescription className="pt-2">
+						If you find bugs or want to suggest new features please email{" "}
+						<MailTo email="djh61@pct.edu" /> or <MailTo email="nxt19@pct.edu" />
+					</AlertDialogDescription>
 				</ScrollArea>
 
 				<AlertDialogFooter className="justify-between">
