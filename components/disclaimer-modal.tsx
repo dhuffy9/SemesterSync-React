@@ -4,18 +4,19 @@ import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogContent,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { Checkbox } from "./ui/checkbox";
 import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
 } from "./ui/collapsible";
 import { Field, FieldLabel } from "./ui/field";
 import { ScrollArea } from "./ui/scroll-area";
@@ -52,15 +53,9 @@ export default function DisclaimerModal() {
 
 				<ScrollArea className="max-h-[70dvh]">
 					<div className="gap-4 flex flex-col">
-						<h2 className="font-bold text-xl">
-							This website is not affiliated with the school
-						</h2>
-
-						<p>
-							If you find bugs or want to suggest new features please email{" "}
-							<MailTo email="djh61@pct.edu" /> or{" "}
-							<MailTo email="nxt19@pct.edu" />
-						</p>
+            <h2 className="font-bold text-xl">
+              This website is not affiliated with the school
+            </h2>
 
 						<Collapsible
 							className="bg-accent rounded-md p-2"
@@ -114,6 +109,12 @@ export default function DisclaimerModal() {
 							</CollapsibleContent>
 						</Collapsible>
 					</div>
+
+          <AlertDialogDescription className="pt-2">
+            If you find bugs or want to suggest new features please email{" "}
+            <MailTo email="djh61@pct.edu" /> or{" "}
+            <MailTo email="nxt19@pct.edu" />
+          </AlertDialogDescription>
 				</ScrollArea>
 
 				<AlertDialogFooter className="justify-between">
