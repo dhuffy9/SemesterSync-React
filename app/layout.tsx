@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import DisclaimerModal from "@/components/disclaimer-modal";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -33,7 +34,11 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<TooltipProvider>
-					<SidebarProvider>{children}</SidebarProvider>
+					<SidebarProvider>
+						{children}
+
+						<DisclaimerModal />
+					</SidebarProvider>
 				</TooltipProvider>
 			</body>
 		</html>
