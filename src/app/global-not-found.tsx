@@ -15,7 +15,9 @@ export default function GlobalNotFound() {
 			<body className="bg-background text-foreground text-center w-full mt-[40%]">
 				<h1 className="font-black ">404 - Page Not Found</h1>
 				<p>This page does not exist.</p>
-				<a href="/" className="hover:underline text-primary">Return Home</a>
+				<a href="/" className="hover:underline text-primary">
+					Return Home
+				</a>
 			</body>
 		</html>
 	);

@@ -4,10 +4,8 @@ export default function Page() {
 	return (
 		<div className="w-full">
 			<AppHeader />
-			
-			<main>
 
-			</main>
+			<main></main>
 		</div>
 	);
 }

@@ -22,9 +22,11 @@ export default function AppHeader() {
 			<div className="flex flex-row items-center gap-2">
 				<Button>
 					<Share />
-          <span className="hidden sm:inline">Share</span>
+					<span className="hidden sm:inline">Share</span>
 				</Button>
-				<Button>Teacher <span className="hidden sm:inline">Schedules </span></Button>
+				<Button>
+					Teacher <span className="hidden sm:inline">Schedules </span>
+				</Button>
 			</div>
 		</nav>
 	);
