@@ -4,6 +4,7 @@ import "./globals.css";
 import DisclaimerModal from "@/components/disclaimer-modal";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import AppSidebar from "@/components/app-sidebar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -35,6 +36,8 @@ export default function RootLayout({
 			>
 				<TooltipProvider>
 					<SidebarProvider>
+						<AppSidebar />
+
 						{children}
 
 						<DisclaimerModal />

@@ -108,7 +108,7 @@ export default function DisclaimerModal() {
 
 					<AlertDialogDescription className="pt-2">
 						If you find bugs or want to suggest new features please email{" "}
-						<MailTo email="djh61@pct.edu" /> or <MailTo email="nxt19@pct.edu" />
+						<MailTo email="toh2@pct.edu" /> or <MailTo email="nxt19@pct.edu" />
 					</AlertDialogDescription>
 				</ScrollArea>
 

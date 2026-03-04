@@ -1,10 +1,13 @@
-import AppSidebar from "@/components/app-sidebar";
+import AppHeader from "@/components/app-header";
 
 export default function Page() {
 	return (
-		<div>
-			<AppSidebar />
-			<main></main>
+		<div className="w-full">
+			<AppHeader />
+			
+			<main>
+
+			</main>
 		</div>
 	);
 }
