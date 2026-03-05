@@ -13,6 +13,7 @@ export default function Page() {
 			<AppHeader />
 
 			<main>
+				{/* Temp to make sure state is working */}
 				{tabs.map((tab) => (
 					<div key={tab.id}>
 						<h1>{tab.name}</h1>
