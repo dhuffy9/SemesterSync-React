@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Share } from "lucide-react";
 import { Button } from "./ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { SidebarTrigger } from "./ui/sidebar";
 
 export default function AppHeader() {
@@ -12,7 +13,23 @@ export default function AppHeader() {
 					<Button variant="outline" size="icon">
 						<ChevronLeft />
 					</Button>
-					<Button variant="ghost">March 4, 2026</Button>
+					<Popover>
+						<PopoverTrigger render={<Button variant="ghost" />}>
+							March 4, 2026
+						</PopoverTrigger>
+						<PopoverContent className="flex flex-row gap-2 p-0">
+							<div className="flex flex-col gap-2 bg-accent rounded-l-lg p-2 border-r border-border">
+								<Button variant="outline">Today</Button>
+								<Button variant="outline">Next Month</Button>
+								<Button variant="outline">Next Semester</Button>
+								<Button variant="outline">Next Year</Button>
+							</div>
+
+							<div className="p-2 rounded-r-lg">
+								<p>Calendar will go here</p>
+							</div>
+						</PopoverContent>
+					</Popover>
 					<Button variant="outline" size="icon">
 						<ChevronRight />
 					</Button>

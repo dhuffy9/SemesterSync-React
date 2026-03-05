@@ -138,7 +138,7 @@ export default function DisclaimerModal() {
 function MailTo({ email }: { email: string }) {
 	return (
 		<a
-			href={`mailto:${email}`}
+			href={`mailto:${email}?subject=%5BSemesterSync%5D%20%3CShort%20Description%20of%20Feature%2FIssue%3E&body=Please%20provide%20as%20thorough%20of%20an%20explanation%20as%20possible%20to%20the%20feature%20you%20would%20like%20to%20see%20added%2C%20or%20the%20issue%20you%20are%20experiencing.%20%0A%0AIf%20you%20are%20experiencing%20an%20issue%2C%20please%20provide%20steps%20as%20to%20how%20we%20can%20replicate%20the%20issue%2C%20and%20include%20what%20type%20of%20device%20(laptop%2C%20phone%2C%20etc)%2C%20what%20browser%20you%20use%2C%20and%20your%20operating%20system%20version.%0A%0APlease%20also%20make%20sure%20you%20update%20the%20text%20in%20the%20subject%20line.`}
 			className="text-primary hover:underline focus-visible:underline"
 		>
 			{email}
