@@ -1,28 +1,28 @@
 import clsx from "clsx";
-import { Plus, X } from "lucide-react";
+import { Edit3, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import {
-	ContextMenu,
-	ContextMenuContent,
-	ContextMenuGroup,
-	ContextMenuItem,
-	ContextMenuLabel,
-	ContextMenuSeparator,
-	ContextMenuTrigger,
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuGroup,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
 } from "./ui/context-menu";
 import { Kbd } from "./ui/kbd";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
@@ -218,8 +218,10 @@ export default function TabList() {
 								<ContextMenuGroup>
 									<ContextMenuItem
 										onClick={() => setTabRenameState(tab.id, true)}
+                    className="justify-between"
 									>
 										Rename
+                  <Edit3 />
 									</ContextMenuItem>
 								</ContextMenuGroup>
 
@@ -228,6 +230,7 @@ export default function TabList() {
 										<ContextMenuSeparator />
 										<ContextMenuItem
 											variant="destructive"
+                      className="justify-between"
 											onClick={(e) =>
 												removeTabHandler(
 													tab.id,
@@ -236,6 +239,7 @@ export default function TabList() {
 											}
 										>
 											Delete
+                      <Trash2 />
 										</ContextMenuItem>
 									</ContextMenuGroup>
 								)}
