@@ -61,7 +61,7 @@ export default function TabList() {
 
 	const removeTabHandler = (
 		tabId: string,
-		e: React.MouseEvent<SVGSVGElement>,
+		e: React.MouseEvent<SVGSVGElement> | React.KeyboardEvent<SVGSVGElement>,
 	) => {
 		e.stopPropagation();
 		if (e.shiftKey) {
@@ -159,6 +159,7 @@ export default function TabList() {
 															}),
 														)}
 														onClick={(e) => removeTabHandler(tab.id, e)}
+                            onKeyDown={(e) => { if (e.key === "Enter") removeTabHandler(tab.id, e)}}
 													/>
 												}
 											/>
