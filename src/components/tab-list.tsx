@@ -96,7 +96,13 @@ export default function TabList() {
 							<ContextMenuTrigger
 								render={
 									<button
-										onClick={() => selectTab(tab.id)}
+										onClick={() => {
+                      if (tab.id === activeTabId) {
+                        setTabRenameState(tab.id, true);
+                      } else {
+                        selectTab(tab.id);
+                      }
+                    }}
 										className={clsx(
 											"flex flex-row shrink-0 items-center gap-2 p-2 rounded-t-lg transition-all cursor-pointer",
 											{
