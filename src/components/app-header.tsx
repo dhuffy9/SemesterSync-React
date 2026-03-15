@@ -1,6 +1,20 @@
-import { ChevronLeft, ChevronRight, Share } from "lucide-react";
+import {
+	Archive,
+	ArchiveRestore,
+	ChevronLeft,
+	ChevronRight,
+	Link,
+	Share,
+} from "lucide-react";
 import { Button } from "./ui/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Separator } from "./ui/separator";
 import { SidebarTrigger } from "./ui/sidebar";
 
 export default function AppHeader() {
@@ -38,12 +52,28 @@ export default function AppHeader() {
 
 			<div className="flex flex-row items-center gap-2">
 				<Button>
-					<Share />
-					<span className="hidden sm:inline">Share</span>
-				</Button>
-				<Button>
 					Teacher <span className="hidden sm:inline">Schedules </span>
 				</Button>
+				<DropdownMenu>
+					<DropdownMenuTrigger render={<Button size={"icon"} />}>
+						<Share />
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end" side="top" className="w-36">
+						<DropdownMenuItem>
+							Share
+							<Link />
+						</DropdownMenuItem>
+						<Separator />
+						<DropdownMenuItem>
+							Backup Data
+							<Archive />
+						</DropdownMenuItem>
+						<DropdownMenuItem>
+							Import Backup
+							<ArchiveRestore />
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
 		</nav>
 	);
