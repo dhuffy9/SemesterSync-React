@@ -1,6 +1,6 @@
 "use client";
 
-import AppHeader from "@/components/app-header";
+import AppHeader from "@/components/header/app-header";
 import TabList from "@/components/tab-list";
 
 export default function Page() {
