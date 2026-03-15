@@ -4,25 +4,25 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuGroup,
-  ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuGroup,
+	ContextMenuItem,
+	ContextMenuLabel,
+	ContextMenuSeparator,
+	ContextMenuTrigger,
 } from "./ui/context-menu";
 import { Kbd } from "./ui/kbd";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
@@ -97,12 +97,12 @@ export default function TabList() {
 								render={
 									<button
 										onClick={() => {
-                      if (tab.id === activeTabId) {
-                        setTabRenameState(tab.id, true);
-                      } else {
-                        selectTab(tab.id);
-                      }
-                    }}
+											if (tab.id === activeTabId) {
+												setTabRenameState(tab.id, true);
+											} else {
+												selectTab(tab.id);
+											}
+										}}
 										className={clsx(
 											"flex flex-row shrink-0 items-center gap-2 p-2 rounded-t-lg transition-all cursor-pointer",
 											{
@@ -159,7 +159,10 @@ export default function TabList() {
 															}),
 														)}
 														onClick={(e) => removeTabHandler(tab.id, e)}
-                            onKeyDown={(e) => { if (e.key === "Enter") removeTabHandler(tab.id, e)}}
+														onKeyDown={(e) => {
+															if (e.key === "Enter")
+																removeTabHandler(tab.id, e);
+														}}
 													/>
 												}
 											/>
@@ -225,10 +228,10 @@ export default function TabList() {
 								<ContextMenuGroup>
 									<ContextMenuItem
 										onClick={() => setTabRenameState(tab.id, true)}
-                    className="justify-between"
+										className="justify-between"
 									>
 										Rename
-                  <Edit3 />
+										<Edit3 />
 									</ContextMenuItem>
 								</ContextMenuGroup>
 
@@ -237,7 +240,7 @@ export default function TabList() {
 										<ContextMenuSeparator />
 										<ContextMenuItem
 											variant="destructive"
-                      className="justify-between"
+											className="justify-between"
 											onClick={(e) =>
 												removeTabHandler(
 													tab.id,
@@ -246,7 +249,7 @@ export default function TabList() {
 											}
 										>
 											Delete
-                      <Trash2 />
+											<Trash2 />
 										</ContextMenuItem>
 									</ContextMenuGroup>
 								)}

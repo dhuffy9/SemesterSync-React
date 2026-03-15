@@ -4,18 +4,18 @@ import { Archive } from "lucide-react";
 import { useState } from "react";
 import useUserStore from "@/stores/user-store";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
 } from "../ui/accordion";
 import { Button } from "../ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "../ui/dialog";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 
@@ -39,7 +39,7 @@ export function BackupItemModal({
 	open: boolean;
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [backupSuccess, setBackupSuccess] = useState(false);
+	const [backupSuccess, setBackupSuccess] = useState(false);
 	const store = useUserStore;
 
 	const createBackup = async () => {
@@ -71,17 +71,17 @@ export function BackupItemModal({
 		document.body.removeChild(a);
 		setTimeout(() => {
 			URL.revokeObjectURL(a.href);
-      setBackupSuccess(true);
+			setBackupSuccess(true);
 		}, 100);
 	};
 
-  const handleOpenChange = (open: boolean) => {
-    setOpen(open);
+	const handleOpenChange = (open: boolean) => {
+		setOpen(open);
 
-    if (!open) {
-      setBackupSuccess(false);
-    }
-  }
+		if (!open) {
+			setBackupSuccess(false);
+		}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
@@ -122,10 +122,18 @@ export function BackupItemModal({
 				</div>
 
 				<DialogFooter>
-					<Button variant="destructive" className={backupSuccess ? "hidden" : ""} onClick={() => setOpen(false)}>
+					<Button
+						variant="destructive"
+						className={backupSuccess ? "hidden" : ""}
+						onClick={() => setOpen(false)}
+					>
 						Cancel Backup
 					</Button>
-					<Button variant={backupSuccess ? "success" : "default"} disabled={backupSuccess} onClick={createBackup}>
+					<Button
+						variant={backupSuccess ? "success" : "default"}
+						disabled={backupSuccess}
+						onClick={createBackup}
+					>
 						{backupSuccess ? "Backup Created" : "Create Backup"}
 					</Button>
 				</DialogFooter>

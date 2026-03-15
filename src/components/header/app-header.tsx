@@ -1,7 +1,4 @@
-import {
-	ChevronLeft,
-	ChevronRight
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SidebarTrigger } from "../ui/sidebar";
