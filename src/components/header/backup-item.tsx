@@ -4,18 +4,18 @@ import { Archive } from "lucide-react";
 import { useState } from "react";
 import useUserStore from "@/stores/user-store";
 import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "../ui/accordion";
 import { Button } from "../ui/button";
 import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "../ui/dialog";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 
@@ -45,7 +45,8 @@ export function BackupItemModal({
 	const createBackup = async () => {
 		//data fetch
 		const state = JSON.stringify(store.getState());
-		const version = store.persist.getOptions().version;
+    const userSchemaVersion = 1; 
+		const backupVersion = 1;
 
 		if (state.length === 0) {
 			alert("No data to backup");
@@ -53,8 +54,8 @@ export function BackupItemModal({
 		}
 
 		//data encoding
-		const data = `{"state":${state},"version":${version}}`;
-		const encoded = window.btoa(data);
+		const data = `{"user":{"state":${state},"schemaVersion":${userSchemaVersion}},"version":${backupVersion}}`;
+		const encoded = Buffer.from(data).toString("base64");
 		const blob = new Blob([encoded], { type: "text/plain" });
 
 		// data download

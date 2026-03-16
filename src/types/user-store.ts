@@ -1,17 +1,17 @@
 import z from "zod";
 
-const termSchema = z.object({
+export const termSchema = z.object({
 	code: z.string(),
 	name: z.string(),
 });
 
-const locationSchema = z.object({
+export const locationSchema = z.object({
 	building: z.string(),
 	abbr: z.string(),
 	room: z.string(),
 });
 
-const userCourseSchema = z.object({
+export const userCourseSchema = z.object({
 	id: z.uuidv4(),
 	code: z.string(),
 	section: z.number(),
@@ -19,31 +19,34 @@ const userCourseSchema = z.object({
 	instructor: z.string(),
 	credits: z.number(),
 	days: z.array(z.string()),
-	startDate: z.date(),
-	endDate: z.date(),
-	startTime: z.date(),
-	endTime: z.date(),
+	startDate: z.coerce.date(),
+	endDate: z.coerce.date(),
+	startTime: z.coerce.date(),
+	endTime: z.coerce.date(),
 	color: z.string(),
 	term: termSchema,
 	location: locationSchema,
 });
 
-const userTabSchema = z.object({
+export const userTabSchema = z.object({
 	id: z.uuidv4(),
 	name: z.string(),
 	courses: z.array(userCourseSchema),
 	totalCredits: z.number(),
-	selectedDate: z.date(),
+	selectedDate: z.coerce.date(),
 });
 
-const userStateSchema = z.object({
+export const userStateSchema = z.object({
 	activeTab: z.uuidv4(),
 	activeTerm: z.string(),
 	tabs: z.array(userTabSchema),
 });
 
-const userStorePersistSchema = z.object({
-	state: userStateSchema,
+export const userStorePersistSchema = z.object({
+	user: z.object({
+		state: userStateSchema,
+		schemaVersion: z.number(),
+	}),
 	version: z.number(),
 });
 

@@ -4,17 +4,18 @@ import { LinkIcon, Share } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Separator } from "../ui/separator";
 import { BackupItem, BackupItemModal } from "./backup-item";
-import ImportItem from "./import-item";
+import { ImportItem, ImportItemModal } from "./import-item";
 
 export default function ShareDropdown() {
 	const [backupOpen, setBackupOpen] = useState(false);
+	const [importOpen, setImportOpen] = useState(false);
 
 	return (
 		<>
@@ -31,11 +32,12 @@ export default function ShareDropdown() {
 					<Separator />
 
 					<BackupItem setOpen={setBackupOpen} />
-					<ImportItem />
+					<ImportItem setOpen={setImportOpen} />
 				</DropdownMenuContent>
 			</DropdownMenu>
 
 			<BackupItemModal open={backupOpen} setOpen={setBackupOpen} />
+			<ImportItemModal open={importOpen} setOpen={setImportOpen} />
 		</>
 	);
 }
