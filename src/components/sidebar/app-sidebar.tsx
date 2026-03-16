@@ -1,8 +1,10 @@
 import { Plus } from "lucide-react";
-import { Button } from "./ui/button";
-import { Sidebar, SidebarContent, SidebarHeader } from "./ui/sidebar";
+import { Button } from "../ui/button";
+import { Sidebar, SidebarContent, SidebarHeader } from "../ui/sidebar";
+import TermDropdown from "./term-dropdown";
 
 export default function AppSidebar() {
+
 	return (
 		<Sidebar>
 			<SidebarHeader>
@@ -10,10 +12,12 @@ export default function AppSidebar() {
 					SemesterSync
 				</p>
 			</SidebarHeader>
-			<SidebarContent className="p-2">
+			<SidebarContent className="p-2 gap-2">
 				<Button>
 					<Plus /> New Course
 				</Button>
+
+				<TermDropdown />
 			</SidebarContent>
 		</Sidebar>
 	);

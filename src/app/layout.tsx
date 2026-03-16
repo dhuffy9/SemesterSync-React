@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
-import AppSidebar from "@/components/app-sidebar";
 import DisclaimerModal from "@/components/disclaimer-modal";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import AppSidebar from "@/components/sidebar/app-sidebar";
+import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -34,15 +33,13 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				<TooltipProvider>
-					<SidebarProvider>
-						<AppSidebar />
+				<Providers>
+					<AppSidebar />
 
-						{children}
+					{children}
 
-						<DisclaimerModal />
-					</SidebarProvider>
-				</TooltipProvider>
+					<DisclaimerModal />
+				</Providers>
 			</body>
 		</html>
 	);
