@@ -4,18 +4,18 @@ import { Archive } from "lucide-react";
 import { useState } from "react";
 import useUserStore from "@/stores/user-store";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
 } from "../ui/accordion";
 import { Button } from "../ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "../ui/dialog";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 
@@ -45,7 +45,7 @@ export function BackupItemModal({
 	const createBackup = async () => {
 		//data fetch
 		const state = JSON.stringify(store.getState());
-    const userSchemaVersion = 1; 
+		const userSchemaVersion = 1;
 		const backupVersion = 1;
 
 		if (state.length === 0) {

@@ -2,37 +2,37 @@
 
 import clsx from "clsx";
 import {
-  ArchiveRestore,
-  FileCheckCorner,
-  FileInput,
-  FileUp,
-  FileXCorner,
-  LoaderCircle,
+	ArchiveRestore,
+	FileCheckCorner,
+	FileInput,
+	FileUp,
+	FileXCorner,
+	LoaderCircle,
 } from "lucide-react";
 import { useState } from "react";
 import z from "zod";
 import useUserStore from "@/stores/user-store";
 import {
-  type UserStorePersist,
-  userStorePersistSchema,
+	type UserStorePersist,
+	userStorePersistSchema,
 } from "@/types/user-store";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { Checkbox } from "../ui/checkbox";
 import { DropdownMenuItem } from "../ui/dropdown-menu";
 import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
+	Field,
+	FieldDescription,
+	FieldGroup,
+	FieldLabel,
+	FieldSet,
 } from "../ui/field";
 
 const fileInputCombos = {
