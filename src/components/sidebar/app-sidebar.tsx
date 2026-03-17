@@ -4,7 +4,6 @@ import { Sidebar, SidebarContent, SidebarHeader } from "../ui/sidebar";
 import TermDropdown from "./term-dropdown";
 
 export default function AppSidebar() {
-
 	return (
 		<Sidebar>
 			<SidebarHeader>
