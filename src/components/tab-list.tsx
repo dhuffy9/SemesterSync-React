@@ -84,7 +84,7 @@ export default function TabList() {
 
 	return (
 		<div
-			className={clsx("flex flex-row items-center gap-2 bg-accent p-2 pb-0", {
+			className={clsx("flex flex-row items-center gap-2 bg-accent border p-2 pb-0", {
 				"w-[calc(100dvw-var(--sidebar-width))]":
 					sidebar.open && !sidebar.isMobile,
 			})}
@@ -103,13 +103,13 @@ export default function TabList() {
 												selectTab(tab.id);
 											}
 										}}
-										className={clsx(
-											"flex flex-row shrink-0 items-center gap-2 p-2 rounded-t-lg transition-all cursor-pointer",
+										className={cn(clsx(
+											"flex flex-row shrink-0 items-center gap-2 p-2 rounded-t-lg transition-all cursor-pointer border border-transparent",
 											{
-												"bg-background": tab.id === activeTabId,
+												"bg-background text-primary border-t-border border-x-border": tab.id === activeTabId,
 												"hover:bg-foreground/5": tab.id !== activeTabId,
 											},
-										)}
+										))}
 										type="button"
 										aria-label={`Switch to ${tab.name} tab`}
 									>
