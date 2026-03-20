@@ -1,6 +1,5 @@
-import { Plus } from "lucide-react";
-import { Button } from "../ui/button";
 import { Sidebar, SidebarContent, SidebarHeader } from "../ui/sidebar";
+import CourseAddModal from "./course-add";
 import TermDropdown from "./term-dropdown";
 
 export default function AppSidebar() {
@@ -12,9 +11,7 @@ export default function AppSidebar() {
 				</p>
 			</SidebarHeader>
 			<SidebarContent className="p-2 gap-2">
-				<Button>
-					<Plus /> New Course
-				</Button>
+				<CourseAddModal />
 
 				<TermDropdown />
 			</SidebarContent>
