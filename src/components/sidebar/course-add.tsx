@@ -744,18 +744,6 @@ export default function CourseAddModal() {
 													<FieldError errors={field.state.meta.errors} />
 												)}
 											</FieldSet>
-											// <Field data-invalid={isInvalid}>\
-											// 	<Input
-											// 		type="string"
-											// 		id={field.name}
-											// 		name={field.name}
-											// 		placeholder="George S. Klump Academic Center | 227 "
-											// 		value={field.state.value}
-											// 		onBlur={field.handleBlur}
-											// 		onChange={(e) => field.handleChange(e.target.value)}
-											// 		aria-invalid={isInvalid}
-											// 	/>
-											// </Field>
 										);
 									}}
 								/>
