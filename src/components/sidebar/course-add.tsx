@@ -3,13 +3,15 @@
 
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import { PlusIcon } from "lucide-react";
+import { Check, Palette, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import z from "zod";
+import { cn } from "@/lib/utils";
 import { termQueryOptions } from "@/queries/terms";
 import useUserStore from "@/stores/user-store";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
+import { ColorPicker } from "../ui/color-picker";
 import {
 	Dialog,
 	DialogClose,
@@ -26,9 +28,11 @@ import {
 	FieldGroup,
 	FieldLabel,
 	FieldLegend,
+	FieldSeparator,
 	FieldSet,
 } from "../ui/field";
 import { Input } from "../ui/input";
+import { ScrollArea } from "../ui/scroll-area";
 import {
 	Select,
 	SelectContent,
@@ -48,6 +52,8 @@ const days = [
 	{ label: "Sunday", value: "sun" },
 ];
 
+const defaultColors = ["#4285F4", "#F4B400", "#36A2EB", "#E53935", "#FBBC05"];
+
 const addCourseFormSchema = z.object({
 	term: z.string(),
 	startDate: z
@@ -66,13 +72,16 @@ const addCourseFormSchema = z.object({
 			"Invalid day selected",
 		),
 	isOnline: z.boolean(),
-	courseNumber: z.string(),
-	section: z.number(),
-	courseTitle: z.string(),
-	instructor: z.string(),
-	room: z.string(),
+	courseNumber: z.string().min(3, "You must provide a course code"),
+	section: z
+		.number("You must provide a section")
+		.min(0, "You must provide a section number"),
+	courseTitle: z.string().min(1, "You must provide a course title"),
+	instructorFirst: z.string(),
+	instructorLast: z.string(),
+	room: z.string().min(1, "You must provide a location"),
 	credits: z.number(),
-	color: z.string(),
+	color: z.string().min(1, "You must provide a color"),
 });
 
 export default function CourseAddModal() {
@@ -83,16 +92,17 @@ export default function CourseAddModal() {
 			term: selectedTerm,
 			startDate: "",
 			endDate: "",
-			courseNumber: "",
-			section: 0,
-			courseTitle: "",
-			instructor: "",
-			room: "",
-			days: [] as string[],
-			credits: 0,
 			startTime: "",
 			endTime: "",
+			days: [] as string[],
 			isOnline: false,
+			courseNumber: "",
+			section: "" as unknown as number,
+			courseTitle: "",
+			instructorFirst: "",
+			instructorLast: "",
+			room: "",
+			credits: 0,
 			color: "#4285F4",
 		},
 		validators: {
@@ -139,276 +149,619 @@ export default function CourseAddModal() {
 				)}
 
 				{!isError && (
-					<form
-						id="course-add-form"
-						onSubmit={(e) => {
-							e.preventDefault();
-							form.handleSubmit();
-						}}
-					>
-						<FieldGroup>
-							<form.Field
-								name="term"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-									return (
-										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name} required>
-												Term
-											</FieldLabel>
-											{isLoading ? (
-												<Skeleton className="w-full h-8" />
-											) : (
-												<Select
+					<ScrollArea className="max-h-96 pr-4">
+						<form
+							id="course-add-form"
+							onSubmit={(e) => {
+								e.preventDefault();
+								form.handleSubmit();
+							}}
+						>
+							<FieldGroup>
+								<form.Field
+									name="term"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor={field.name} required>
+													Term
+												</FieldLabel>
+												{isLoading ? (
+													<Skeleton className="w-full h-8" />
+												) : (
+													<Select
+														name={field.name}
+														value={field.state.value}
+														/* @ts-expect-error */
+														onValueChange={field.handleChange}
+														items={terms}
+													>
+														<SelectTrigger aria-invalid={isInvalid}>
+															<SelectValue placeholder="Select Term" />
+														</SelectTrigger>
+														<SelectContent alignItemWithTrigger>
+															{Object.keys(terms).map((termKey) => (
+																<SelectItem key={termKey} value={termKey}>
+																	{terms[termKey]}
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												)}
+												<FieldDescription>
+													Auto populated from selected term. Course will only
+													show when term is selected.
+												</FieldDescription>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+
+								<FieldSet>
+									<FieldLegend variant="label">Start and End Dates</FieldLegend>
+									<FieldDescription>
+										Course will only appear in the calendar between the selected
+										start and end dates.
+									</FieldDescription>
+
+									<Field
+										orientation="responsive"
+										className="@md/field-group:items-start"
+									>
+										<form.Field
+											name="startDate"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															Start Date
+														</FieldLabel>
+														<Input
+															type="date"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
+
+										<form.Field
+											name="endDate"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															End Date
+														</FieldLabel>
+														<Input
+															type="date"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
+									</Field>
+
+									<Field
+										orientation="responsive"
+										className="@md/field-group:items-start"
+									>
+										<form.Field
+											name="startTime"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															Start Time
+														</FieldLabel>
+														<Input
+															type="time"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
+
+										<form.Field
+											name="endTime"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															End Time
+														</FieldLabel>
+														<Input
+															type="time"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
+									</Field>
+								</FieldSet>
+
+								<form.Field
+									name="days"
+									mode="array"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<FieldSet data-invalid={isInvalid}>
+												<FieldLegend variant="label" required>
+													Days of the Week
+												</FieldLegend>
+												<FieldDescription>
+													What days of the week the course occurs on.
+												</FieldDescription>
+
+												<FieldGroup
+													data-slot="checkbox-group"
+													className="grid grid-cols-4"
+												>
+													{days.map((day) => (
+														<Field
+															key={day.value}
+															data-invalid={isInvalid}
+															orientation="horizontal"
+															className="flex-1"
+														>
+															<Checkbox
+																id={`course-day-${day.value}`}
+																name={field.name}
+																aria-invalid={isInvalid}
+																checked={field.state.value.includes(day.value)}
+																onCheckedChange={(checked) => {
+																	if (checked) {
+																		field.pushValue(day.value);
+																	} else {
+																		const index = field.state.value.indexOf(
+																			day.value,
+																		);
+																		if (index > -1) {
+																			field.removeValue(index);
+																		}
+																	}
+																}}
+															/>
+															<FieldLabel htmlFor={`course-day-${day.value}`}>
+																{day.label}
+															</FieldLabel>
+														</Field>
+													))}
+												</FieldGroup>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</FieldSet>
+										);
+									}}
+								/>
+
+								<form.Field
+									name="isOnline"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid} orientation="horizontal">
+												<Checkbox
+													id={field.name}
+													name={field.name}
+													aria-invalid={isInvalid}
+													checked={field.state.value}
+													onCheckedChange={(checked) => {
+														field.setValue(checked);
+													}}
+												/>
+												<FieldLabel htmlFor={field.name}>
+													Course is Online
+												</FieldLabel>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+							</FieldGroup>
+
+							<FieldSeparator className="my-2" />
+
+							<FieldGroup>
+								<Field
+									orientation="responsive"
+									className="@md/field-group:items-start"
+								>
+									<form.Field
+										name="courseNumber"
+										children={(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+
+											return (
+												<Field data-invalid={isInvalid} className="flex-1">
+													<FieldLabel htmlFor={field.name} required>
+														Course Code
+													</FieldLabel>
+													<Input
+														type="string"
+														id={field.name}
+														name={field.name}
+														placeholder="ENL111"
+														value={field.state.value}
+														onBlur={field.handleBlur}
+														onChange={(e) => field.handleChange(e.target.value)}
+														aria-invalid={isInvalid}
+													/>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									/>
+
+									<form.Field
+										name="section"
+										children={(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+
+											return (
+												<Field data-invalid={isInvalid} className="flex-1">
+													<FieldLabel htmlFor={field.name} required>
+														Course Section
+													</FieldLabel>
+													<Input
+														type="number"
+														placeholder="21"
+														id={field.name}
+														name={field.name}
+														value={field.state.value}
+														min={0}
+														onBlur={field.handleBlur}
+														onKeyDown={(e) => {
+															const keys = [
+																"Backspace",
+																"Delete",
+																"ArrowLeft",
+																"ArrowRight",
+																"Tab",
+															];
+															if (keys.includes(e.key)) return;
+
+															// prevents non-numeric from going to onChange event
+															if (!/^\d/.test(e.key)) e.preventDefault();
+														}}
+														onChange={(e) => {
+															const val = e.target.valueAsNumber;
+
+															field.handleChange(
+																Number.isNaN(val)
+																	? ("" as unknown as number)
+																	: val,
+															);
+														}}
+														aria-invalid={isInvalid}
+													/>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									/>
+								</Field>
+
+								<form.Field
+									name="courseTitle"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor={field.name} required>
+													Course Title
+												</FieldLabel>
+												<Input
+													type="string"
+													id={field.name}
+													name={field.name}
+													placeholder="English Composition I"
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													aria-invalid={isInvalid}
+												/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+
+								<Field
+									orientation="responsive"
+									className="@md/field-group:items-start"
+								>
+									<form.Field
+										name="instructorFirst"
+										children={(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+
+											return (
+												<Field data-invalid={isInvalid} className="flex-1">
+													<FieldLabel htmlFor={field.name}>
+														Instructor First Name
+													</FieldLabel>
+													<Input
+														type="string"
+														id={field.name}
+														name={field.name}
+														placeholder="John"
+														value={field.state.value}
+														onBlur={field.handleBlur}
+														onChange={(e) => field.handleChange(e.target.value)}
+														aria-invalid={isInvalid}
+													/>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									/>
+
+									<form.Field
+										name="instructorLast"
+										children={(field) => {
+											const isInvalid =
+												field.state.meta.isTouched && !field.state.meta.isValid;
+
+											return (
+												<Field data-invalid={isInvalid} className="flex-1">
+													<FieldLabel htmlFor={field.name}>
+														Instructor Last Name
+													</FieldLabel>
+													<Input
+														type="string"
+														id={field.name}
+														name={field.name}
+														placeholder="Doe"
+														value={field.state.value}
+														onBlur={field.handleBlur}
+														onChange={(e) => field.handleChange(e.target.value)}
+														aria-invalid={isInvalid}
+													/>
+													{isInvalid && (
+														<FieldError errors={field.state.meta.errors} />
+													)}
+												</Field>
+											);
+										}}
+									/>
+								</Field>
+
+								<form.Field
+									name="room"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor={field.name} required>
+													Location
+												</FieldLabel>
+												<Input
+													type="string"
+													id={field.name}
+													name={field.name}
+													placeholder="George S. Klump Academic Center | 227 "
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													aria-invalid={isInvalid}
+												/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+
+								<form.Field
+									name="credits"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid} className="flex-1">
+												<FieldLabel htmlFor={field.name}>
+													Course Credits
+												</FieldLabel>
+												<Input
+													type="number"
+													placeholder="21"
+													id={field.name}
 													name={field.name}
 													value={field.state.value}
-													/* @ts-expect-error */
-													onValueChange={field.handleChange}
-													items={terms}
-												>
-													<SelectTrigger aria-invalid={isInvalid}>
-														<SelectValue placeholder="Select Term" />
-													</SelectTrigger>
-													<SelectContent alignItemWithTrigger>
-														{Object.keys(terms).map((termKey) => (
-															<SelectItem key={termKey} value={termKey}>
-																{terms[termKey]}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
-											<FieldDescription>
-												Auto populated from selected term. Course will only show
-												when term is selected.
-											</FieldDescription>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
+													min={0}
+													step={0.5}
+													onBlur={field.handleBlur}
+													onKeyDown={(e) => {
+														const keys = [
+															"Backspace",
+															"Delete",
+															"ArrowLeft",
+															"ArrowRight",
+															"Tab",
+														];
+														if (keys.includes(e.key)) return;
 
-							<FieldSet>
-								<FieldLegend variant="label">Start and End Dates</FieldLegend>
-								<FieldDescription>
-									Course will only appear in the calendar between the selected
-									start and end dates.
-								</FieldDescription>
+														// prevents non-numeric non decimal from going to onChange event
+														if (!/^\d|^\./.test(e.key)) e.preventDefault();
+													}}
+													onChange={(e) => {
+														const val = e.target.valueAsNumber;
 
-								<Field
-									orientation="responsive"
-									className="@md/field-group:items-start"
-								>
-									<form.Field
-										name="startDate"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
+														field.handleChange(Number.isNaN(val) ? 0 : val);
+													}}
+													aria-invalid={isInvalid}
+												/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
 
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														Start Date
-													</FieldLabel>
-													<Input
-														type="date"
-														id={field.name}
-														name={field.name}
+								<form.Field
+									name="color"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<FieldSet>
+												<FieldLegend required>Course Color</FieldLegend>
+												<FieldDescription>
+													The color of the course on your calendar.
+												</FieldDescription>
+
+												<div className="flex flex-row gap-2">
+													{defaultColors.map((color) => (
+														<div key={color}>
+															<button
+																type="button"
+																className={cn(
+																	"size-6 rounded-full flex items-center justify-center outline-transparent outline-2 cursor-pointer",
+																	field.state.value === color &&
+																		"cursor-pointer outline-border",
+																)}
+																style={{ backgroundColor: color }}
+																disabled={field.state.value === color}
+																onClick={() => field.setValue(color)}
+															>
+																{field.state.value === color && (
+																	<Check className="text-white size-4" />
+																)}
+															</button>
+														</div>
+													))}
+
+													<ColorPicker
+														className="size-6 rounded-full flex items-center justify-center outline-transparent outline-2"
 														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-
-									<form.Field
-										name="endDate"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														End Date
-													</FieldLabel>
-													<Input
-														type="date"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-								</Field>
-
-								<Field
-									orientation="responsive"
-									className="@md/field-group:items-start"
-								>
-									<form.Field
-										name="startTime"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														Start Time
-													</FieldLabel>
-													<Input
-														type="time"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-
-									<form.Field
-										name="endTime"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														End Time
-													</FieldLabel>
-													<Input
-														type="time"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-								</Field>
-							</FieldSet>
-
-							<form.Field
-								name="days"
-								mode="array"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-
-									return (
-										<FieldSet data-invalid={isInvalid}>
-											<FieldLegend variant="label" required>
-												Days of the Week
-											</FieldLegend>
-											<FieldDescription>
-												What days of the week the course occurs on.
-											</FieldDescription>
-
-											<FieldGroup
-												data-slot="checkbox-group"
-												className="grid grid-cols-4"
-											>
-												{days.map((day) => (
-													<Field
-														key={day.value}
-														data-invalid={isInvalid}
-														orientation="horizontal"
-														className="flex-1"
+														onChange={(v) =>
+															field.handleChange(
+																typeof v === "string" ? v : v.target.value,
+															)
+														}
 													>
-														<Checkbox
-															id={`course-day-${day.value}`}
-															name={field.name}
-															aria-invalid={isInvalid}
-															checked={field.state.value.includes(day.value)}
-															onCheckedChange={(checked) => {
-																if (checked) {
-																	field.pushValue(day.value);
-																} else {
-																	const index = field.state.value.indexOf(
-																		day.value,
-																	);
-																	if (index > -1) {
-																		field.removeValue(index);
-																	}
-																}
-															}}
-														/>
-														<FieldLabel htmlFor={`course-day-${day.value}`}>
-															{day.label}
-														</FieldLabel>
-													</Field>
-												))}
-											</FieldGroup>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</FieldSet>
-									);
-								}}
-							/>
+														{defaultColors.includes(field.state.value) ? (
+															<Palette className="text-white size-4" />
+														) : (
+															<Check className="text-white size-4" />
+														)}
+													</ColorPicker>
+												</div>
 
-							<form.Field
-								name="isOnline"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-
-									return (
-										<Field data-invalid={isInvalid} orientation="horizontal">
-											<Checkbox
-												id={field.name}
-												name={field.name}
-												aria-invalid={isInvalid}
-												checked={field.state.value}
-												onCheckedChange={(checked) => {
-													field.setValue(checked);
-												}}
-											/>
-											<FieldLabel htmlFor={field.name}>
-												Course is Online
-											</FieldLabel>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
-						</FieldGroup>
-					</form>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</FieldSet>
+											// <Field data-invalid={isInvalid}>\
+											// 	<Input
+											// 		type="string"
+											// 		id={field.name}
+											// 		name={field.name}
+											// 		placeholder="George S. Klump Academic Center | 227 "
+											// 		value={field.state.value}
+											// 		onBlur={field.handleBlur}
+											// 		onChange={(e) => field.handleChange(e.target.value)}
+											// 		aria-invalid={isInvalid}
+											// 	/>
+											// </Field>
+										);
+									}}
+								/>
+							</FieldGroup>
+						</form>
+					</ScrollArea>
 				)}
 
 				<DialogFooter className="gap-2">
