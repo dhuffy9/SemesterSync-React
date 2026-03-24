@@ -22,18 +22,26 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
 function FieldLegend({
 	className,
 	variant = "legend",
+	required = false,
 	...props
-}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
+}: React.ComponentProps<"legend"> & {
+	variant?: "legend" | "label";
+	required?: boolean;
+}) {
 	return (
 		<legend
 			data-slot="field-legend"
 			data-variant={variant}
 			className={cn(
 				"mb-1.5 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base",
+				required ? "flex flex-row items-center gap-1" : "",
 				className,
 			)}
 			{...props}
-		/>
+		>
+			{props.children}
+			{required && <span className="text-destructive">*</span>}
+		</legend>
 	);
 }
 
@@ -98,18 +106,23 @@ function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
 
 function FieldLabel({
 	className,
+	required = false,
 	...props
-}: React.ComponentProps<typeof Label>) {
+}: React.ComponentProps<typeof Label> & { required?: boolean }) {
 	return (
 		<Label
 			data-slot="field-label"
 			className={cn(
 				"has-data-checked:bg-primary/5 has-data-checked:border-primary/30 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10 gap-2 group-data-[disabled=true]/field:opacity-50 has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border *:data-[slot=field]:p-2.5 group/field-label peer/field-label flex w-fit leading-snug",
 				"has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
+				required ? "gap-1" : "",
 				className,
 			)}
 			{...props}
-		/>
+		>
+			{props.children}
+			{required && <span className="text-destructive">*</span>}
+		</Label>
 	);
 }
 
