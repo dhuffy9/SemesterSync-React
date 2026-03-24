@@ -84,10 +84,13 @@ export default function TabList() {
 
 	return (
 		<div
-			className={clsx("flex flex-row items-center gap-2 bg-accent border p-2 pb-0", {
-				"w-[calc(100dvw-var(--sidebar-width))]":
-					sidebar.open && !sidebar.isMobile,
-			})}
+			className={clsx(
+				"flex flex-row items-center gap-2 bg-accent border p-2 pb-0",
+				{
+					"w-[calc(100dvw-var(--sidebar-width))]":
+						sidebar.open && !sidebar.isMobile,
+				},
+			)}
 		>
 			<ScrollArea className="min-w-0 flex-1">
 				<div className="flex flex-row items-center">
@@ -103,13 +106,16 @@ export default function TabList() {
 												selectTab(tab.id);
 											}
 										}}
-										className={cn(clsx(
-											"flex flex-row shrink-0 items-center gap-2 p-2 rounded-t-lg transition-all cursor-pointer border border-transparent",
-											{
-												"bg-background text-primary border-t-border border-x-border": tab.id === activeTabId,
-												"hover:bg-foreground/5": tab.id !== activeTabId,
-											},
-										))}
+										className={cn(
+											clsx(
+												"flex flex-row shrink-0 items-center gap-2 p-2 rounded-t-lg transition-all cursor-pointer border border-transparent",
+												{
+													"bg-background text-primary border-t-border border-x-border":
+														tab.id === activeTabId,
+													"hover:bg-foreground/5": tab.id !== activeTabId,
+												},
+											),
+										)}
 										type="button"
 										aria-label={`Switch to ${tab.name} tab`}
 									>
