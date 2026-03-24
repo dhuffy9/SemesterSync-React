@@ -5,6 +5,7 @@ import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Palette, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { cn } from "@/lib/utils";
 import { termQueryOptions } from "@/queries/terms";
@@ -86,6 +87,8 @@ const addCourseFormSchema = z.object({
 
 export default function CourseAddModal() {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
+	const currentTab = useUserStore((state) => state.activeTab);
+	const addCourse = useUserStore((state) => state.addCourse);
 
 	const form = useForm({
 		defaultValues: {
@@ -108,8 +111,31 @@ export default function CourseAddModal() {
 		validators: {
 			onSubmit: addCourseFormSchema,
 		},
-		onSubmit: (values) => {
-			console.log(values);
+		onSubmit: (formObj) => {
+			console.log(formObj);
+			const values = formObj.value;
+
+			addCourse(currentTab, {
+				id: uuidv4(),
+				code: values.courseNumber,
+				section: values.section,
+				title: values.courseTitle,
+				instructorFirst: values.instructorFirst,
+				instructorLast: values.instructorLast,
+				credits: values.credits,
+				days: values.days,
+				startDate: new Date(values.startDate),
+				endDate: new Date(values.endDate),
+				startTime: new Date(values.startTime),
+				endTime: new Date(values.endTime),
+				color: values.color,
+				term: {
+					code: values.term,
+				},
+				location: {
+					building: values.room,
+				},
+			});
 		},
 	});
 
