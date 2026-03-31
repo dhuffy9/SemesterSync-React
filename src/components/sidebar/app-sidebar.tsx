@@ -1,8 +1,8 @@
 import { Sidebar, SidebarContent, SidebarHeader } from "../ui/sidebar";
-import CourseAddModal from "./course-add";
-import TermDropdown from "./term-dropdown";
+import CourseAddModal from "./courseAdd/course-add";
+import TermDropdown from "./terms/term-dropdown";
 
-export default function AppSidebar() {
+export default async function AppSidebar() {
 	return (
 		<Sidebar>
 			<SidebarHeader>

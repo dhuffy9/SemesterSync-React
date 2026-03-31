@@ -1,3 +1,5 @@
+"use client";
+
 import clsx from "clsx";
 import { Edit3, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";

@@ -1,15 +1,3 @@
-export interface Term {
-	termCode: string;
-	termSlug: string;
-	displayName: string;
-	termName: string;
-	startDate: string | null;
-	endDate: string | null;
-	latestFile: string;
-	updatedAt: string;
-}
+import type { termTable } from "@/db/schemas/terms";
 
-export interface TermAPIResponse {
-	ok: boolean;
-	terms: Array<Term>;
-}
+export type TermTableResult = typeof termTable.$inferSelect;
