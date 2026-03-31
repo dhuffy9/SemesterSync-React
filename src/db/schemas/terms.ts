@@ -5,3 +5,5 @@ export const termTable = mysqlTable("terms", {
 	term_code: varchar({ length: 20 }).notNull(),
 	term_name: varchar({ length: 100 }).notNull(),
 });
+
+export type TermTableResult = typeof termTable.$inferSelect;

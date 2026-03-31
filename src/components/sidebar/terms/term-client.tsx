@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import type { TermTableResult } from "@/db/schemas/terms";
 import useUserStore from "@/stores/user-store";
-import type { TermTableResult } from "@/types/terms";
 import { Button } from "../../ui/button";
 import {
 	DropdownMenu,
