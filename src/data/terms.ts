@@ -1,4 +1,5 @@
 import "server-only";
+
 import { db } from "@/db/connection";
 import { termTable } from "@/db/schemas/terms";
 

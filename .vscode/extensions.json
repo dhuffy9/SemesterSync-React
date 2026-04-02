@@ -2,6 +2,7 @@
 	"recommendations": [
 		"biomejs.biome",
 		"yoavbls.pretty-ts-errors",
-		"bradlc.vscode-tailwindcss"
+		"bradlc.vscode-tailwindcss",
+		"exodiusstudios.comment-anchors"
 	]
 }
