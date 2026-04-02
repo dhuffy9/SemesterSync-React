@@ -59,7 +59,16 @@ const days = [
 	{ label: "Sunday", value: "sun" },
 ];
 
-const defaultColors = ["#4285F4", "#F4B400", "#36A2EB", "#E53935", "#FBBC05"];
+const defaultColors = [
+	"#c22727",
+	"#873d16",
+	"#278716",
+	"#168776",
+	"#4285F4",
+	"#181687",
+	"#561687",
+	"#871663",
+];
 
 const addCourseFormSchema = z.object({
 	term: z.string(),
