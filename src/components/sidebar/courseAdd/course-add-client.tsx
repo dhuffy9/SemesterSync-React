@@ -2,10 +2,21 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { Check, Palette, PlusIcon } from "lucide-react";
+import { Check, ChevronDown, Palette, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
+import {
+	AlertDialog,
+	AlertDialogContent,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 import type { TermTableResult } from "@/db/schemas/terms";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
@@ -13,13 +24,10 @@ import { Button } from "../../ui/button";
 import { Checkbox } from "../../ui/checkbox";
 import { ColorPicker } from "../../ui/color-picker";
 import {
-	Dialog,
 	DialogClose,
-	DialogContent,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "../../ui/dialog";
 import {
 	Field,
@@ -71,14 +79,16 @@ const addCourseFormSchema = z.object({
 			"Invalid day selected",
 		),
 	isOnline: z.boolean(),
-	courseNumber: z.string().min(3, "You must provide a course code"),
-	section: z
-		.number("You must provide a section")
-		.min(0, "You must provide a section number"),
+	courseNumber: z.string(),
+	// .min(3, "Course code must be a minimum of 3 characters")
+	section: z.string(),
+	// .number("You must provide a section")
+	// .min(0, "You must provide a section number")
 	courseTitle: z.string().min(1, "You must provide a course title"),
 	instructorFirst: z.string(),
 	instructorLast: z.string(),
-	room: z.string().min(1, "You must provide a location"),
+	room: z.string(),
+	// .min(1, "You must provide a location")
 	credits: z.number(),
 	color: z.string().min(1, "You must provide a color"),
 });
@@ -92,6 +102,8 @@ export default function CourseAddModalClient({
 	const currentTab = useUserStore((state) => state.activeTab);
 	const addCourse = useUserStore((state) => state.addCourse);
 
+	const [courseSpecificOpen, setCourseSpecificOpen] = useState(true);
+
 	const form = useForm({
 		defaultValues: {
 			term: selectedTerm,
@@ -102,7 +114,7 @@ export default function CourseAddModalClient({
 			days: [] as string[],
 			isOnline: false,
 			courseNumber: "",
-			section: "" as unknown as number,
+			section: "",
 			courseTitle: "",
 			instructorFirst: "",
 			instructorLast: "",
@@ -120,7 +132,7 @@ export default function CourseAddModalClient({
 			addCourse(currentTab, {
 				id: uuidv4(),
 				code: values.courseNumber,
-				section: values.section,
+				section: parseInt(values.section, 10),
 				title: values.courseTitle,
 				instructorFirst: values.instructorFirst,
 				instructorLast: values.instructorLast,
@@ -156,11 +168,11 @@ export default function CourseAddModalClient({
 	}, [termsRes]);
 
 	return (
-		<Dialog>
-			<DialogTrigger render={<Button />}>
+		<AlertDialog>
+			<AlertDialogTrigger render={<Button />}>
 				<PlusIcon /> Add Course
-			</DialogTrigger>
-			<DialogContent>
+			</AlertDialogTrigger>
+			<AlertDialogContent>
 				<DialogHeader>
 					<DialogTitle>Add Course</DialogTitle>
 				</DialogHeader>
@@ -230,94 +242,7 @@ export default function CourseAddModalClient({
 							/>
 							{/* !SECTION Term */}
 
-							<Field
-								orientation="responsive"
-								className="@md/field-group:items-start"
-							>
-								{/* SECTION Code */}
-								<form.Field
-									name="courseNumber"
-									children={(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="flex-1">
-												<FieldLabel htmlFor={field.name} required>
-													Course Code
-												</FieldLabel>
-												<Input
-													type="string"
-													id={field.name}
-													name={field.name}
-													placeholder="ENL111"
-													value={field.state.value}
-													onBlur={field.handleBlur}
-													onChange={(e) => field.handleChange(e.target.value)}
-													aria-invalid={isInvalid}
-												/>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								/>
-								{/* !SECTION Code */}
-
-								{/* SECTION Section */}
-								<form.Field
-									name="section"
-									children={(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="flex-1">
-												<FieldLabel htmlFor={field.name} required>
-													Course Section
-												</FieldLabel>
-												<Input
-													type="number"
-													placeholder="21"
-													id={field.name}
-													name={field.name}
-													value={field.state.value}
-													min={0}
-													onBlur={field.handleBlur}
-													onKeyDown={(e) => {
-														const keys = [
-															"Backspace",
-															"Delete",
-															"ArrowLeft",
-															"ArrowRight",
-															"Tab",
-														];
-														if (keys.includes(e.key)) return;
-
-														// prevents non-numeric from going to onChange event
-														if (!/^\d/.test(e.key)) e.preventDefault();
-													}}
-													onChange={(e) => {
-														const val = e.target.valueAsNumber;
-
-														field.handleChange(
-															Number.isNaN(val)
-																? ("" as unknown as number)
-																: val,
-														);
-													}}
-													aria-invalid={isInvalid}
-												/>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								/>
-								{/* !SECTION Section */}
-							</Field>
+							<FieldSeparator />
 
 							{/* SECTION Title */}
 							<form.Field
@@ -329,7 +254,7 @@ export default function CourseAddModalClient({
 									return (
 										<Field data-invalid={isInvalid}>
 											<FieldLabel htmlFor={field.name} required>
-												Course Title
+												Course/Event Title
 											</FieldLabel>
 											<Input
 												type="string"
@@ -350,72 +275,7 @@ export default function CourseAddModalClient({
 							/>
 							{/* !SECTION Title */}
 
-							{/* SECTION Instructor */}
-							<Field
-								orientation="responsive"
-								className="@md/field-group:items-start"
-							>
-								<form.Field
-									name="instructorFirst"
-									children={(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="flex-1">
-												<FieldLabel htmlFor={field.name}>
-													Instructor First Name
-												</FieldLabel>
-												<Input
-													type="string"
-													id={field.name}
-													name={field.name}
-													placeholder="John"
-													value={field.state.value}
-													onBlur={field.handleBlur}
-													onChange={(e) => field.handleChange(e.target.value)}
-													aria-invalid={isInvalid}
-												/>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								/>
-
-								<form.Field
-									name="instructorLast"
-									children={(field) => {
-										const isInvalid =
-											field.state.meta.isTouched && !field.state.meta.isValid;
-
-										return (
-											<Field data-invalid={isInvalid} className="flex-1">
-												<FieldLabel htmlFor={field.name}>
-													Instructor Last Name
-												</FieldLabel>
-												<Input
-													type="string"
-													id={field.name}
-													name={field.name}
-													placeholder="Doe"
-													value={field.state.value}
-													onBlur={field.handleBlur}
-													onChange={(e) => field.handleChange(e.target.value)}
-													aria-invalid={isInvalid}
-												/>
-												{isInvalid && (
-													<FieldError errors={field.state.meta.errors} />
-												)}
-											</Field>
-										);
-									}}
-								/>
-							</Field>
-							{/* !SECTION Instructor */}
-
-							{/* SECTION Room */}
+							{/* SECTION Location */}
 							<form.Field
 								name="room"
 								children={(field) => {
@@ -423,10 +283,8 @@ export default function CourseAddModalClient({
 										field.state.meta.isTouched && !field.state.meta.isValid;
 
 									return (
-										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name} required>
-												Location
-											</FieldLabel>
+										<Field data-invalid={isInvalid} className="-mt-2">
+											<FieldLabel htmlFor={field.name}>Location</FieldLabel>
 											<Input
 												type="string"
 												id={field.name}
@@ -444,57 +302,247 @@ export default function CourseAddModalClient({
 									);
 								}}
 							/>
-							{/* !SECTION Room */}
+							{/* !SECTION Location */}
 
-							{/* SECTION Credits */}
-							<form.Field
-								name="credits"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
+							<Collapsible
+								open={courseSpecificOpen}
+								onOpenChange={setCourseSpecificOpen}
+								className="bg-accent rounded-lg p-2 [&_input]:bg-background"
+							>
+								<CollapsibleTrigger className="flex flex-row items-center justify-between gap-2 cursor-pointer">
+									<div className="flex flex-col flex-1 items-start">
+										<FieldLegend variant="label">
+											Course Specific Fields
+										</FieldLegend>
+										<FieldDescription>
+											Fill in the below fields if you are adding a course to the
+											calendar.
+										</FieldDescription>
+									</div>
+									<ChevronDown
+										className={`transition-all ${courseSpecificOpen ? "rotate-180" : ""}`}
+									/>
+								</CollapsibleTrigger>
+								<CollapsibleContent>
+									<Separator className="my-4" />
+									<FieldGroup>
+										<Field
+											orientation="responsive"
+											className="@md/field-group:items-start"
+										>
+											{/* SECTION Code */}
+											<form.Field
+												name="courseNumber"
+												children={(field) => {
+													const isInvalid =
+														field.state.meta.isTouched &&
+														!field.state.meta.isValid;
 
-									return (
-										<Field data-invalid={isInvalid} className="flex-1">
-											<FieldLabel htmlFor={field.name}>
-												Course Credits
-											</FieldLabel>
-											<Input
-												type="number"
-												placeholder="21"
-												id={field.name}
-												name={field.name}
-												value={field.state.value}
-												min={0}
-												step={0.5}
-												onBlur={field.handleBlur}
-												onKeyDown={(e) => {
-													const keys = [
-														"Backspace",
-														"Delete",
-														"ArrowLeft",
-														"ArrowRight",
-														"Tab",
-													];
-													if (keys.includes(e.key)) return;
-
-													// prevents non-numeric non decimal from going to onChange event
-													if (!/^\d|^\./.test(e.key)) e.preventDefault();
+													return (
+														<Field data-invalid={isInvalid} className="flex-1">
+															<FieldLabel htmlFor={field.name}>
+																Course Code
+															</FieldLabel>
+															<Input
+																type="string"
+																id={field.name}
+																name={field.name}
+																placeholder="ENL111"
+																value={field.state.value}
+																onBlur={field.handleBlur}
+																onChange={(e) =>
+																	field.handleChange(e.target.value)
+																}
+																aria-invalid={isInvalid}
+															/>
+															{isInvalid && (
+																<FieldError errors={field.state.meta.errors} />
+															)}
+														</Field>
+													);
 												}}
-												onChange={(e) => {
-													const val = e.target.valueAsNumber;
-
-													field.handleChange(Number.isNaN(val) ? 0 : val);
-												}}
-												aria-invalid={isInvalid}
 											/>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
+											{/* !SECTION Code */}
+
+											{/* SECTION Section */}
+											<form.Field
+												name="section"
+												children={(field) => {
+													const isInvalid =
+														field.state.meta.isTouched &&
+														!field.state.meta.isValid;
+
+													return (
+														<Field data-invalid={isInvalid} className="flex-1">
+															<FieldLabel htmlFor={field.name}>
+																Course Section
+															</FieldLabel>
+															<Input
+																type="number"
+																placeholder="21"
+																id={field.name}
+																name={field.name}
+																value={field.state.value}
+																min={0}
+																onBlur={field.handleBlur}
+																onKeyDown={(e) => {
+																	const keys = [
+																		"Backspace",
+																		"Delete",
+																		"ArrowLeft",
+																		"ArrowRight",
+																		"Tab",
+																	];
+																	if (keys.includes(e.key)) return;
+
+																	// prevents non-numeric from going to onChange event
+																	if (!/^\d/.test(e.key)) e.preventDefault();
+																}}
+																onChange={(e) => {
+																	const val = e.target.valueAsNumber;
+
+																	field.handleChange(
+																		Number.isNaN(val)
+																			? ""
+																			: (val as unknown as string),
+																	);
+																}}
+																aria-invalid={isInvalid}
+															/>
+															{isInvalid && (
+																<FieldError errors={field.state.meta.errors} />
+															)}
+														</Field>
+													);
+												}}
+											/>
+											{/* !SECTION Section */}
 										</Field>
-									);
-								}}
-							/>
-							{/* !SECTION Credits */}
+
+										{/* SECTION Instructor */}
+										<Field
+											orientation="responsive"
+											className="@md/field-group:items-start"
+										>
+											<form.Field
+												name="instructorFirst"
+												children={(field) => {
+													const isInvalid =
+														field.state.meta.isTouched &&
+														!field.state.meta.isValid;
+
+													return (
+														<Field data-invalid={isInvalid} className="flex-1">
+															<FieldLabel htmlFor={field.name}>
+																Instructor First Name
+															</FieldLabel>
+															<Input
+																type="string"
+																id={field.name}
+																name={field.name}
+																placeholder="John"
+																value={field.state.value}
+																onBlur={field.handleBlur}
+																onChange={(e) =>
+																	field.handleChange(e.target.value)
+																}
+																aria-invalid={isInvalid}
+															/>
+															{isInvalid && (
+																<FieldError errors={field.state.meta.errors} />
+															)}
+														</Field>
+													);
+												}}
+											/>
+
+											<form.Field
+												name="instructorLast"
+												children={(field) => {
+													const isInvalid =
+														field.state.meta.isTouched &&
+														!field.state.meta.isValid;
+
+													return (
+														<Field data-invalid={isInvalid} className="flex-1">
+															<FieldLabel htmlFor={field.name}>
+																Instructor Last Name
+															</FieldLabel>
+															<Input
+																type="string"
+																id={field.name}
+																name={field.name}
+																placeholder="Doe"
+																value={field.state.value}
+																onBlur={field.handleBlur}
+																onChange={(e) =>
+																	field.handleChange(e.target.value)
+																}
+																aria-invalid={isInvalid}
+															/>
+															{isInvalid && (
+																<FieldError errors={field.state.meta.errors} />
+															)}
+														</Field>
+													);
+												}}
+											/>
+										</Field>
+										{/* !SECTION Instructor */}
+
+										{/* SECTION Credits */}
+										<form.Field
+											name="credits"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
+
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name}>
+															Course Credits
+														</FieldLabel>
+														<Input
+															type="number"
+															placeholder="21"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															min={0}
+															step={0.5}
+															onBlur={field.handleBlur}
+															onKeyDown={(e) => {
+																const keys = [
+																	"Backspace",
+																	"Delete",
+																	"ArrowLeft",
+																	"ArrowRight",
+																	"Tab",
+																];
+																if (keys.includes(e.key)) return;
+
+																// prevents non-numeric non decimal from going to onChange event
+																if (!/^\d|^\./.test(e.key)) e.preventDefault();
+															}}
+															onChange={(e) => {
+																const val = e.target.valueAsNumber;
+
+																field.handleChange(Number.isNaN(val) ? 0 : val);
+															}}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
+										{/* !SECTION Credits */}
+									</FieldGroup>
+								</CollapsibleContent>
+							</Collapsible>
 						</FieldGroup>
 						{/* !SECTION Course Info */}
 
@@ -727,6 +775,8 @@ export default function CourseAddModalClient({
 							/>
 							{/* !SECTION Online */}
 
+							<FieldSeparator />
+
 							{/* SECTION Color */}
 							<form.Field
 								name="color"
@@ -795,7 +845,10 @@ export default function CourseAddModalClient({
 
 				<DialogFooter className="gap-2">
 					<DialogClose
-						onClick={() => form.reset()}
+						onClick={() => {
+							form.reset();
+							setCourseSpecificOpen(true);
+						}}
 						render={<Button variant="outline" />}
 					>
 						Cancel
@@ -808,7 +861,7 @@ export default function CourseAddModalClient({
 						Add Course
 					</Button>
 				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 }
