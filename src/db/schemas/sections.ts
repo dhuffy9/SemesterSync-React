@@ -17,17 +17,17 @@ export const sectionTable = mysqlTable("sections", {
 	course_id: int()
 		.notNull()
 		.references(() => courseTable.course_id),
-	instructors_id: int()
+	instructor_id: int()
 		.notNull()
 		.references(() => instructorsTable.instructor_id),
-	course_code: varchar({ length: 50 }).notNull(),
+	section_code: varchar({ length: 50 }).notNull(),
 	start_date: date().notNull(),
 	end_date: date().notNull(),
 	delivery_method: varchar({ length: 50 }).notNull(),
-	class_type: varchar({ length: 100 }).notNull(),
+	class_type: varchar({ length: 100 }),
 	course_attribute: varchar({ length: 100 }).notNull(),
 	class_comments: longtext(),
-	avil_seats: int().notNull(),
+	avail_seats: varchar({ length: 100 }).notNull(),
 });
 
 export type SectionTableResult = typeof sectionTable.$inferSelect;
