@@ -77,7 +77,7 @@ export default function MiniCalendar() {
 					<ChevronRight />
 				</Button>
 			</div>
-			<div className="flex justify-around text-base text-gray-500">
+			<div className="flex justify-around text-base text-muted-foreground">
 				{weekDays.map((day, index) => (
 					<span key={`${index}_${day}`}>{day}</span>
 				))}
@@ -92,7 +92,7 @@ export default function MiniCalendar() {
 					return (
 						<span
 							key={`${index}_${day}`}
-							className={`p-2 text-sm rounded-full ${isSelected ? "bg-blue-500 text-white" : ""}`}
+							className={`p-2 text-sm rounded-full ${isSelected ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}`}
 						>
 							{day}
 						</span>
