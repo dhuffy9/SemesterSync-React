@@ -21,7 +21,7 @@ export default function ClassList() {
 			</div>
 
 			<ScrollArea className="flex-1 min-h-0 w-full">
-				<div className="pr-3 pb-6">
+				<div className="py-1">
 					<div className="mt-2 p-3 border-l-[6px] rounded-l-lg border-sidebar-primary">
 						<p className="text-base font-semibold">CIT344-21</p>
 						<p className="text-sm text-muted-foreground">
