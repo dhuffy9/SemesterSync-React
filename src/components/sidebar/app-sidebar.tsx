@@ -1,6 +1,8 @@
 import { Sidebar, SidebarContent, SidebarHeader } from "../ui/sidebar";
 import CourseAddModal from "./course-add";
 import TermDropdown from "./term-dropdown";
+import MiniCalendar from "./mini-calendar";
+import ClassList from "./class-list";
 
 export default function AppSidebar() {
 	return (
@@ -14,6 +16,10 @@ export default function AppSidebar() {
 				<CourseAddModal />
 
 				<TermDropdown />
+
+				<MiniCalendar/>
+
+				<ClassList/>
 			</SidebarContent>
 		</Sidebar>
 	);
