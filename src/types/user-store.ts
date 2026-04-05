@@ -2,13 +2,10 @@ import z from "zod";
 
 export const termSchema = z.object({
 	code: z.string(),
-	name: z.string(),
 });
 
 export const locationSchema = z.object({
 	building: z.string(),
-	abbr: z.string(),
-	room: z.string(),
 });
 
 export const userCourseSchema = z.object({
@@ -16,7 +13,8 @@ export const userCourseSchema = z.object({
 	code: z.string(),
 	section: z.number(),
 	title: z.string(),
-	instructor: z.string(),
+	instructorFirst: z.string(),
+	instructorLast: z.string(),
 	credits: z.number(),
 	days: z.array(z.string()),
 	startDate: z.coerce.date(),

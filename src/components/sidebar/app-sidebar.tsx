@@ -1,10 +1,10 @@
 import { Sidebar, SidebarContent, SidebarHeader } from "../ui/sidebar";
-import CourseAddModal from "./course-add";
-import TermDropdown from "./term-dropdown";
-import MiniCalendar from "./mini-calendar";
 import ClassList from "./class-list";
+import CourseAddModal from "./courseAdd/course-add";
+import MiniCalendar from "./mini-calendar";
+import TermDropdown from "./terms/term-dropdown";
 
-export default function AppSidebar() {
+export default async function AppSidebar() {
 	return (
 		<Sidebar>
 			<SidebarHeader>
@@ -17,9 +17,9 @@ export default function AppSidebar() {
 
 				<TermDropdown />
 
-				<MiniCalendar/>
+				<MiniCalendar />
 
-				<ClassList/>
+				<ClassList />
 			</SidebarContent>
 		</Sidebar>
 	);
