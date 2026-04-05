@@ -90,12 +90,14 @@ export default function MiniCalendar() {
 						year === today.getFullYear();
 
 					return (
-						<span
+						<Button
 							key={`${index}_${day}`}
-							className={`p-2 text-sm rounded-full ${isSelected ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}`}
+							variant={isSelected ? "default" : "ghost"}
+							size={"lg"}
+							className="rounded-full font-normal"
 						>
 							{day}
-						</span>
+						</Button>
 					);
 				})}
 			</div>
