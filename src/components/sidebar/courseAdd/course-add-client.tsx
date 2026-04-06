@@ -201,7 +201,7 @@ export default function CourseAddModalClient({
 				)} */}
 
 				{/* {!isError && ( */}
-				<ScrollArea className="max-h-96 pr-4">
+				<ScrollArea className="max-h-[70vh] pr-4">
 					<form
 						id="course-add-form"
 						onSubmit={(e) => {

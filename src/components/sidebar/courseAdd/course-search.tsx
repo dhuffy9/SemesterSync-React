@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import {
 	Combobox,
 	ComboboxContent,
@@ -7,6 +8,7 @@ import {
 	ComboboxList,
 } from "@/components/ui/combobox";
 import type { OrganizedCourses } from "@/data/courses";
+import { cn } from "@/lib/utils";
 
 export default function CourseSearch({
 	courses,
@@ -20,12 +22,6 @@ export default function CourseSearch({
 			items={Object.keys(courses).map(
 				(courseKey) => courses[courseKey as unknown as number],
 			)}
-			itemToStringValue={(course) =>
-				course.sections.map(
-					(section) =>
-						`${course.course_code}-${section.section_code}-${course.course_title}`,
-				)
-			}
 		>
 			<ComboboxInput placeholder="Search Courses..." />
 			<ComboboxContent>
@@ -39,21 +35,38 @@ export default function CourseSearch({
 								key={`${courseKey}-${section.section_id}`}
 								value={`${course.course_code}-${section.section_code}-${course.course_title}`}
 							>
-								<div>
+								<div className="w-full">
 									<p>
 										{course.course_code}-{section.section_code}:{" "}
 										{course.course_title}
 									</p>
-									<div>
+									<div className="flex flex-row items-center gap-2 justify-between text-sm text-muted-foreground">
 										<p>
-											{section.meetings.flatMap((meeting) =>
-												meeting.instructors
-													.map(
-														(instructor) =>
-															`${instructor.first_name} ${instructor.last_name}`,
-													)
-													.join(", "),
+											{new Set(
+												section.meetings.map((meeting) =>
+													meeting.instructors
+														.map(
+															(instructor) =>
+																`${instructor.first_name} ${instructor.last_name}`,
+														)
+														.join(", "),
+												),
+											)
+												.values()
+												.toArray()
+												.join(", ")}
+										</p>
+
+										<p
+											className={cn(
+												clsx("", {
+													"text-destructive":
+														section.seats_available / section.seats_total <
+														0.25,
+												}),
 											)}
+										>
+											{section.seats_available} / {section.seats_total}
 										</p>
 									</div>
 								</div>
