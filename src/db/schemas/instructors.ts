@@ -1,8 +1,13 @@
-import { int, mysqlTable, varchar } from "drizzle-orm/mysql-core";
+import { alias, int, mysqlTable, varchar } from "drizzle-orm/mysql-core";
 
-export const instructorsTable = mysqlTable("instructors", {
+export const primaryInstructorsTable = mysqlTable("instructors", {
 	instructor_id: int().autoincrement().primaryKey(),
 	instructor_name: varchar({ length: 255 }).notNull(),
 });
 
-export type InstructorTableResult = typeof instructorsTable.$inferSelect;
+export const secondaryInstructorsTable = alias(
+	primaryInstructorsTable,
+	"secondary",
+);
+
+export type InstructorTableResult = typeof primaryInstructorsTable.$inferSelect;
