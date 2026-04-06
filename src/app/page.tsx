@@ -10,7 +10,7 @@ export default async function Page() {
 
 			<main>
 				<TabList />
-				<ScrollArea className="h-[89vh]">
+				<ScrollArea className="h-[89vh] px-8 pt-8">
 					<CalendarContainer />
 				</ScrollArea>
 			</main>
