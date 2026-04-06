@@ -5,7 +5,10 @@ import { sectionTable } from "@/db/schemas/sections";
 import "server-only";
 import { buildingTable } from "@/db/schemas/buildings";
 import { courseTable } from "@/db/schemas/courses";
-import { instructorsTable } from "@/db/schemas/instructors";
+import {
+	primaryInstructorsTable,
+	secondaryInstructorsTable,
+} from "@/db/schemas/instructors";
 import { roomTable } from "@/db/schemas/rooms";
 import { termTable } from "@/db/schemas/terms";
 
@@ -68,8 +71,18 @@ export async function getAllCoursesWithMeetings() {
 		)
 		.leftJoin(roomTable, eq(meetingTable.room_id, roomTable.room_id))
 		.leftJoin(
-			instructorsTable,
-			eq(meetingTable.instructor_id, instructorsTable.instructor_id),
+			primaryInstructorsTable,
+			eq(
+				meetingTable.primary_instructor_id,
+				primaryInstructorsTable.instructor_id,
+			),
+		)
+		.leftJoin(
+			secondaryInstructorsTable,
+			eq(
+				meetingTable.secondary_instructor_id,
+				secondaryInstructorsTable.instructor_id,
+			),
 		)
 		.leftJoin(termTable, eq(sectionTable.term_id, termTable.term_id))
 		.leftJoin(courseTable, eq(sectionTable.course_id, courseTable.course_id));
