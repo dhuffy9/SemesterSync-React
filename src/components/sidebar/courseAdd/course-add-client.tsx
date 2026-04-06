@@ -17,6 +17,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
+import type { OrganizedCourses } from "@/data/courses";
 import type { TermTableResult } from "@/db/schemas/terms";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
@@ -48,6 +49,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "../../ui/select";
+import CourseSearch from "./course-search";
 
 const days = [
 	{ label: "Monday", value: "mon" },
@@ -104,9 +106,13 @@ const addCourseFormSchema = z.object({
 
 export default function CourseAddModalClient({
 	termsRes,
+	courses,
 }: {
 	termsRes: Array<TermTableResult>;
+	courses: OrganizedCourses;
 }) {
+	console.log(courses);
+
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 	const currentTab = useUserStore((state) => state.activeTab);
 	const addCourse = useUserStore((state) => state.addCourse);
@@ -203,6 +209,7 @@ export default function CourseAddModalClient({
 							form.handleSubmit();
 						}}
 					>
+						<CourseSearch courses={courses} />
 						{/* SECTION Course Info */}
 						<FieldGroup>
 							{/* SECTION Term */}

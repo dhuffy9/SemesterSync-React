@@ -6,5 +6,7 @@ export default async function CourseAddModal() {
 	const terms = await getTerms();
 	const meetings = await getAllCoursesWithMeetings();
 
-	return <CourseAddModalClient termsRes={terms} />;
+	console.log(meetings);
+
+	return <CourseAddModalClient termsRes={terms} courses={meetings} />;
 }
