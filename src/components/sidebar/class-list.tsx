@@ -27,7 +27,9 @@ export default function ClassList() {
 						<p className="text-sm text-muted-foreground">
 							Operating Systems Concepts 1
 						</p>
-						<p className="text-xs text-muted-foreground">TR 2:00 PM - 3:15 PM</p>
+						<p className="text-xs text-muted-foreground">
+							TR 2:00 PM - 3:15 PM
+						</p>
 						<p className="text-xs text-muted-foreground">ATHS: E245</p>
 					</div>
 
@@ -36,7 +38,9 @@ export default function ClassList() {
 						<p className="text-sm text-muted-foreground">
 							Operating Systems Concepts 1
 						</p>
-						<p className="text-xs text-muted-foreground">TR 2:00 PM - 3:15 PM</p>
+						<p className="text-xs text-muted-foreground">
+							TR 2:00 PM - 3:15 PM
+						</p>
 						<p className="text-xs text-muted-foreground">ATHS: E245</p>
 					</div>
 
@@ -45,7 +49,9 @@ export default function ClassList() {
 						<p className="text-sm text-muted-foreground">
 							Operating Systems Concepts 1
 						</p>
-						<p className="text-xs text-muted-foreground">TR 2:00 PM - 3:15 PM</p>
+						<p className="text-xs text-muted-foreground">
+							TR 2:00 PM - 3:15 PM
+						</p>
 						<p className="text-xs text-muted-foreground">ATHS: E245</p>
 					</div>
 
@@ -54,7 +60,9 @@ export default function ClassList() {
 						<p className="text-sm text-muted-foreground">
 							Operating Systems Concepts 1
 						</p>
-						<p className="text-xs text-muted-foreground">TR 2:00 PM - 3:15 PM</p>
+						<p className="text-xs text-muted-foreground">
+							TR 2:00 PM - 3:15 PM
+						</p>
 						<p className="text-xs text-muted-foreground">ATHS: E245</p>
 					</div>
 
@@ -63,7 +71,9 @@ export default function ClassList() {
 						<p className="text-sm text-muted-foreground">
 							Operating Systems Concepts 1
 						</p>
-						<p className="text-xs text-muted-foreground">TR 2:00 PM - 3:15 PM</p>
+						<p className="text-xs text-muted-foreground">
+							TR 2:00 PM - 3:15 PM
+						</p>
 						<p className="text-xs text-muted-foreground">ATHS: E245</p>
 					</div>
 
@@ -72,7 +82,9 @@ export default function ClassList() {
 						<p className="text-sm text-muted-foreground">
 							Operating Systems Concepts 1
 						</p>
-						<p className="text-xs text-muted-foreground">TR 2:00 PM - 3:15 PM</p>
+						<p className="text-xs text-muted-foreground">
+							TR 2:00 PM - 3:15 PM
+						</p>
 						<p className="text-xs text-muted-foreground">ATHS: E245</p>
 					</div>
 				</div>

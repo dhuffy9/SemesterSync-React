@@ -12,7 +12,7 @@ export default async function AppSidebar() {
 					SemesterSync
 				</p>
 			</SidebarHeader>
-			<SidebarContent className="p-2 pb-4 gap-2">
+			<SidebarContent className="p-2 gap-2">
 				<CourseAddModal />
 
 				<TermDropdown />
