@@ -5,9 +5,9 @@ export default function ClassList() {
 	return (
 		<div className="flex flex-row w-full overflow-hidden">
 			<div className="w-[80px]"></div>
-			<div className="flex flex-col flex-1 min-w-0">
+			<div className="flex flex-col flex-1">
 				<div className="w-full h-[100px]"></div>
-				<div className="grid grid-cols-7 w-full  min-w-0">
+				<div className="grid grid-cols-7 w-full">
 					{Array.from({ length: rows * cols }).map((_, i) => {
 						const col = i % cols;
 						const row = Math.floor(i / cols);
