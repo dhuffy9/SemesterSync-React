@@ -27,7 +27,6 @@ export type OrganizedCourses = Record<
 			start_date: Date;
 			end_date: Date;
 			delivery_method: string;
-			class_type: string | null;
 			course_attribute: string;
 			class_comments: string | null;
 			seats_available: number;
@@ -130,7 +129,6 @@ export async function getAllCoursesWithMeetings(): Promise<CourseResponse> {
 							start_date: meetingSlot.sections.start_date,
 							end_date: meetingSlot.sections.end_date,
 							delivery_method: meetingSlot.sections.delivery_method,
-							class_type: meetingSlot.sections.class_type,
 							course_attribute: meetingSlot.sections.course_attribute,
 							class_comments: meetingSlot.sections.class_comments,
 							seats_available: seatsAvailable,
@@ -203,7 +201,6 @@ export async function getAllCoursesWithMeetings(): Promise<CourseResponse> {
 						start_date: meetingSlot.sections.start_date,
 						end_date: meetingSlot.sections.end_date,
 						delivery_method: meetingSlot.sections.delivery_method,
-						class_type: meetingSlot.sections.class_type,
 						course_attribute: meetingSlot.sections.course_attribute,
 						class_comments: meetingSlot.sections.class_comments,
 						seats_available: seatsAvailable,
