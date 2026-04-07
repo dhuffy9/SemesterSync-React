@@ -17,7 +17,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import type { OrganizedCourses } from "@/data/courses";
+import type { CourseResponse } from "@/data/courses";
 import type { TermResponse } from "@/data/terms";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
@@ -109,10 +109,8 @@ export default function CourseAddModalClient({
 	courses,
 }: {
 	termsRes: TermResponse;
-	courses: OrganizedCourses;
+	courses: CourseResponse;
 }) {
-	console.log(courses);
-
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 	const currentTab = useUserStore((state) => state.activeTab);
 	const addCourse = useUserStore((state) => state.addCourse);
@@ -169,11 +167,11 @@ export default function CourseAddModalClient({
 	});
 
 	const [terms, setTerms] = useState<Record<string, string>>({});
-	const [isError, setIsError] = useState(false);
+	const [isTermError, setIsTermError] = useState(false);
 
 	useEffect(() => {
 		if (typeof termsRes === "number") {
-			setIsError(true);
+			setIsTermError(true);
 			return;
 		}
 
@@ -198,7 +196,7 @@ export default function CourseAddModalClient({
 					<DialogTitle>Add Course</DialogTitle>
 				</DialogHeader>
 
-				{isError && (
+				{isTermError && (
 					<div className="w-full bg-destructive/20 rounded-md p-4 gap-2 flex flex-col items-center align-middle text-destructive border border-destructive">
 						<p className="text-lg font-bold">Error Loading Terms</p>
 						<p>There was an error loading the terms, please try again.</p>
@@ -206,7 +204,7 @@ export default function CourseAddModalClient({
 					</div>
 				)}
 
-				{!isError && (
+				{!isTermError && (
 					<ScrollArea className="max-h-[70vh] pr-4">
 						<form
 							id="course-add-form"
@@ -910,7 +908,7 @@ export default function CourseAddModalClient({
 					>
 						Cancel
 					</DialogClose>
-					<Button disabled={isError} type="submit" form="course-add-form">
+					<Button disabled={isTermError} type="submit" form="course-add-form">
 						Add Course
 					</Button>
 				</DialogFooter>

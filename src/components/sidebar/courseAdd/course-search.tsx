@@ -7,15 +7,16 @@ import {
 	ComboboxItem,
 	ComboboxList,
 } from "@/components/ui/combobox";
-import type { OrganizedCourses } from "@/data/courses";
+import type { CourseResponse } from "@/data/courses";
 import { cn } from "@/lib/utils";
 
-export default function CourseSearch({
-	courses,
-}: {
-	courses: OrganizedCourses;
-}) {
-	console.log(courses);
+export default function CourseSearch({ courses }: { courses: CourseResponse }) {
+	if (typeof courses === "number")
+		return (
+			<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">
+				Error Loading Courses
+			</p>
+		);
 
 	return (
 		<Combobox
