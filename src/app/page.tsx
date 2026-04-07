@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default async function Page() {
 	return (
-		<div>
+		<div className="w-full">
 			<AppHeader />
 
 			<main>
