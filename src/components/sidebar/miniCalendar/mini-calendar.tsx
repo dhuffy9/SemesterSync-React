@@ -57,7 +57,7 @@ export default function MiniCalendar() {
 	}
 
 	return (
-		<div className="w-full">
+		<div className="">
 			<div className="flex justify-between pt-2 pb-2">
 				<Button
 					onClick={() => changeMonth(-1)}

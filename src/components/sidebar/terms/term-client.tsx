@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import type { TermTableResult } from "@/db/schemas/terms";
+import type { TermResponse } from "@/data/terms";
 import useUserStore from "@/stores/user-store";
 import { Button } from "../../ui/button";
 import {
@@ -12,11 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from "../../ui/dropdown-menu";
 
-export default function TermDropdownClient({
-	terms,
-}: {
-	terms: Array<TermTableResult>;
-}) {
+export default function TermDropdownClient({ terms }: { terms: TermResponse }) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 	const setSelectedTerm = useUserStore((state) => state.setActiveTerm);
 
@@ -31,12 +27,12 @@ export default function TermDropdownClient({
 
 	// if (isLoading) return <Skeleton className="w-full h-8" />;
 
-	// if (isError)
-	// 	return (
-	// 		<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">
-	// 			Error Loading Terms
-	// 		</p>
-	// 	);
+	if (typeof terms === "number")
+		return (
+			<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">
+				Error Loading Terms
+			</p>
+		);
 
 	return (
 		<DropdownMenu>
