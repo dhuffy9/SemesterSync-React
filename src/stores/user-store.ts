@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Course, Tab, UserState, UserStore } from "@/types/user-store";
 
 // This will be the default state that the user will see when they first load
@@ -132,6 +132,7 @@ const useUserStore = create<UserStore>()(
 		}),
 		{
 			name: "user-store",
+			storage: createJSONStorage(() => localStorage),
 			version: 1, // if we make breaking changes to store we bump version & define a migration
 		},
 	),
