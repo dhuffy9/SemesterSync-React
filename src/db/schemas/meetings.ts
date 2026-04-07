@@ -1,6 +1,9 @@
 import { int, mysqlTable, time, varchar } from "drizzle-orm/mysql-core";
 import { buildingTable } from "./buildings";
-import { instructorsTable } from "./instructors";
+import {
+	primaryInstructorsTable,
+	secondaryInstructorsTable,
+} from "./instructors";
 import { roomTable } from "./rooms";
 import { sectionTable } from "./sections";
 
@@ -15,9 +18,12 @@ export const meetingTable = mysqlTable("meetings", {
 	room_id: int()
 		.notNull()
 		.references(() => roomTable.room_id),
-	instructor_id: int()
+	primary_instructor_id: int()
 		.notNull()
-		.references(() => instructorsTable.instructor_id),
+		.references(() => primaryInstructorsTable.instructor_id),
+	secondary_instructor_id: int()
+		.notNull()
+		.references(() => secondaryInstructorsTable.instructor_id),
 	day: varchar({ length: 30 }).notNull(),
 	start_time: time().notNull(),
 	end_time: time().notNull(),
