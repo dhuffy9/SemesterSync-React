@@ -17,7 +17,7 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import type { TermTableResult } from "@/db/schemas/terms";
+import type { TermResponse } from "@/data/terms";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import { Button } from "../../ui/button";
@@ -105,7 +105,7 @@ const addCourseFormSchema = z.object({
 export default function CourseAddModalClient({
 	termsRes,
 }: {
-	termsRes: Array<TermTableResult>;
+	termsRes: TermResponse;
 }) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 	const currentTab = useUserStore((state) => state.activeTab);
@@ -163,8 +163,14 @@ export default function CourseAddModalClient({
 	});
 
 	const [terms, setTerms] = useState<Record<string, string>>({});
+	const [isError, setIsError] = useState(false);
 
 	useEffect(() => {
+		if (typeof termsRes === "number") {
+			setIsError(true);
+			return;
+		}
+
 		setTerms(
 			termsRes.reduce(
 				(allTerms, term) => {
@@ -186,162 +192,342 @@ export default function CourseAddModalClient({
 					<DialogTitle>Add Course</DialogTitle>
 				</DialogHeader>
 
-				{/* {isError && (
+				{isError && (
 					<div className="w-full bg-destructive/20 rounded-md p-4 gap-2 flex flex-col items-center align-middle text-destructive border border-destructive">
 						<p className="text-lg font-bold">Error Loading Terms</p>
 						<p>There was an error loading the terms, please try again.</p>
 						<p>If it continues please contact support.</p>
 					</div>
-				)} */}
+				)}
 
-				{/* {!isError && ( */}
-				<ScrollArea className="max-h-96 pr-4">
-					<form
-						id="course-add-form"
-						onSubmit={(e) => {
-							e.preventDefault();
-							form.handleSubmit();
-						}}
-					>
-						{/* SECTION Course Info */}
-						<FieldGroup>
-							{/* SECTION Term */}
-							<form.Field
-								name="term"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-									return (
-										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name} required>
-												Term
-											</FieldLabel>
-											{/* {isLoading ? (
+				{!isError && (
+					<ScrollArea className="max-h-96 pr-4">
+						<form
+							id="course-add-form"
+							onSubmit={(e) => {
+								e.preventDefault();
+								form.handleSubmit();
+							}}
+						>
+							{/* SECTION Course Info */}
+							<FieldGroup>
+								{/* SECTION Term */}
+								<form.Field
+									name="term"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor={field.name} required>
+													Term
+												</FieldLabel>
+												{/* {isLoading ? (
 													<Skeleton className="w-full h-8" />
 												) : ( */}
-											<Select
-												name={field.name}
-												value={field.state.value}
-												/* @ts-expect-error */
-												onValueChange={field.handleChange}
-												items={terms}
-											>
-												<SelectTrigger aria-invalid={isInvalid}>
-													<SelectValue placeholder="Select Term" />
-												</SelectTrigger>
-												<SelectContent alignItemWithTrigger>
-													{Object.keys(terms).map((termKey) => (
-														<SelectItem key={termKey} value={termKey}>
-															{terms[termKey]}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											{/* )} */}
+												<Select
+													name={field.name}
+													value={field.state.value}
+													/* @ts-expect-error */
+													onValueChange={field.handleChange}
+													items={terms}
+												>
+													<SelectTrigger aria-invalid={isInvalid}>
+														<SelectValue placeholder="Select Term" />
+													</SelectTrigger>
+													<SelectContent alignItemWithTrigger>
+														{Object.keys(terms).map((termKey) => (
+															<SelectItem key={termKey} value={termKey}>
+																{terms[termKey]}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+												{/* )} */}
+												<FieldDescription>
+													Auto populated from selected term. Course will only
+													show when term is selected.
+												</FieldDescription>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+								{/* !SECTION Term */}
+
+								<FieldSeparator />
+
+								{/* SECTION Title */}
+								<form.Field
+									name="courseTitle"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid}>
+												<FieldLabel htmlFor={field.name} required>
+													Course/Event Title
+												</FieldLabel>
+												<Input
+													type="string"
+													id={field.name}
+													name={field.name}
+													placeholder="English Composition I"
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													aria-invalid={isInvalid}
+												/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+								{/* !SECTION Title */}
+
+								{/* SECTION Location */}
+								<form.Field
+									name="room"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid} className="-mt-2">
+												<FieldLabel htmlFor={field.name}>Location</FieldLabel>
+												<Input
+													type="string"
+													id={field.name}
+													name={field.name}
+													placeholder="George S. Klump Academic Center | 227 "
+													value={field.state.value}
+													onBlur={field.handleBlur}
+													onChange={(e) => field.handleChange(e.target.value)}
+													aria-invalid={isInvalid}
+												/>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+								{/* !SECTION Location */}
+
+								<Collapsible
+									open={courseSpecificOpen}
+									onOpenChange={setCourseSpecificOpen}
+									className="bg-accent rounded-lg p-2 [&_input]:bg-background"
+								>
+									<CollapsibleTrigger className="flex flex-row items-center justify-between gap-2 cursor-pointer">
+										<div className="flex flex-col flex-1 items-start">
+											<FieldLegend variant="label">
+												Course Specific Fields
+											</FieldLegend>
 											<FieldDescription>
-												Auto populated from selected term. Course will only show
-												when term is selected.
+												Fill in the below fields if you are adding a course to
+												the calendar.
 											</FieldDescription>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
-							{/* !SECTION Term */}
+										</div>
+										<ChevronDown
+											className={`transition-all ${courseSpecificOpen ? "rotate-180" : ""}`}
+										/>
+									</CollapsibleTrigger>
+									<CollapsibleContent>
+										<Separator className="my-4" />
+										<FieldGroup>
+											<Field
+												orientation="responsive"
+												className="@md/field-group:items-start"
+											>
+												{/* SECTION Code */}
+												<form.Field
+													name="courseNumber"
+													children={(field) => {
+														const isInvalid =
+															field.state.meta.isTouched &&
+															!field.state.meta.isValid;
 
-							<FieldSeparator />
+														return (
+															<Field
+																data-invalid={isInvalid}
+																className="flex-1"
+															>
+																<FieldLabel htmlFor={field.name}>
+																	Course Code
+																</FieldLabel>
+																<Input
+																	type="string"
+																	id={field.name}
+																	name={field.name}
+																	placeholder="ENL111"
+																	value={field.state.value}
+																	onBlur={field.handleBlur}
+																	onChange={(e) =>
+																		field.handleChange(e.target.value)
+																	}
+																	aria-invalid={isInvalid}
+																/>
+																{isInvalid && (
+																	<FieldError
+																		errors={field.state.meta.errors}
+																	/>
+																)}
+															</Field>
+														);
+													}}
+												/>
+												{/* !SECTION Code */}
 
-							{/* SECTION Title */}
-							<form.Field
-								name="courseTitle"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
+												{/* SECTION Section */}
+												<form.Field
+													name="section"
+													children={(field) => {
+														const isInvalid =
+															field.state.meta.isTouched &&
+															!field.state.meta.isValid;
 
-									return (
-										<Field data-invalid={isInvalid}>
-											<FieldLabel htmlFor={field.name} required>
-												Course/Event Title
-											</FieldLabel>
-											<Input
-												type="string"
-												id={field.name}
-												name={field.name}
-												placeholder="English Composition I"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
-												aria-invalid={isInvalid}
-											/>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
-							{/* !SECTION Title */}
+														return (
+															<Field
+																data-invalid={isInvalid}
+																className="flex-1"
+															>
+																<FieldLabel htmlFor={field.name}>
+																	Course Section
+																</FieldLabel>
+																<Input
+																	type="number"
+																	placeholder="21"
+																	id={field.name}
+																	name={field.name}
+																	value={field.state.value}
+																	min={0}
+																	onBlur={field.handleBlur}
+																	onKeyDown={(e) => {
+																		const keys = [
+																			"Backspace",
+																			"Delete",
+																			"ArrowLeft",
+																			"ArrowRight",
+																			"Tab",
+																		];
+																		if (keys.includes(e.key)) return;
 
-							{/* SECTION Location */}
-							<form.Field
-								name="room"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
+																		// prevents non-numeric from going to onChange event
+																		if (!/^\d/.test(e.key)) e.preventDefault();
+																	}}
+																	onChange={(e) => {
+																		const val = e.target.valueAsNumber;
 
-									return (
-										<Field data-invalid={isInvalid} className="-mt-2">
-											<FieldLabel htmlFor={field.name}>Location</FieldLabel>
-											<Input
-												type="string"
-												id={field.name}
-												name={field.name}
-												placeholder="George S. Klump Academic Center | 227 "
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
-												aria-invalid={isInvalid}
-											/>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
-							{/* !SECTION Location */}
+																		field.handleChange(
+																			Number.isNaN(val)
+																				? ""
+																				: (val as unknown as string),
+																		);
+																	}}
+																	aria-invalid={isInvalid}
+																/>
+																{isInvalid && (
+																	<FieldError
+																		errors={field.state.meta.errors}
+																	/>
+																)}
+															</Field>
+														);
+													}}
+												/>
+												{/* !SECTION Section */}
+											</Field>
 
-							<Collapsible
-								open={courseSpecificOpen}
-								onOpenChange={setCourseSpecificOpen}
-								className="bg-accent rounded-lg p-2 [&_input]:bg-background"
-							>
-								<CollapsibleTrigger className="flex flex-row items-center justify-between gap-2 cursor-pointer">
-									<div className="flex flex-col flex-1 items-start">
-										<FieldLegend variant="label">
-											Course Specific Fields
-										</FieldLegend>
-										<FieldDescription>
-											Fill in the below fields if you are adding a course to the
-											calendar.
-										</FieldDescription>
-									</div>
-									<ChevronDown
-										className={`transition-all ${courseSpecificOpen ? "rotate-180" : ""}`}
-									/>
-								</CollapsibleTrigger>
-								<CollapsibleContent>
-									<Separator className="my-4" />
-									<FieldGroup>
-										<Field
-											orientation="responsive"
-											className="@md/field-group:items-start"
-										>
-											{/* SECTION Code */}
+											{/* SECTION Instructor */}
+											<Field
+												orientation="responsive"
+												className="@md/field-group:items-start"
+											>
+												<form.Field
+													name="instructorFirst"
+													children={(field) => {
+														const isInvalid =
+															field.state.meta.isTouched &&
+															!field.state.meta.isValid;
+
+														return (
+															<Field
+																data-invalid={isInvalid}
+																className="flex-1"
+															>
+																<FieldLabel htmlFor={field.name}>
+																	Instructor First Name
+																</FieldLabel>
+																<Input
+																	type="string"
+																	id={field.name}
+																	name={field.name}
+																	placeholder="John"
+																	value={field.state.value}
+																	onBlur={field.handleBlur}
+																	onChange={(e) =>
+																		field.handleChange(e.target.value)
+																	}
+																	aria-invalid={isInvalid}
+																/>
+																{isInvalid && (
+																	<FieldError
+																		errors={field.state.meta.errors}
+																	/>
+																)}
+															</Field>
+														);
+													}}
+												/>
+
+												<form.Field
+													name="instructorLast"
+													children={(field) => {
+														const isInvalid =
+															field.state.meta.isTouched &&
+															!field.state.meta.isValid;
+
+														return (
+															<Field
+																data-invalid={isInvalid}
+																className="flex-1"
+															>
+																<FieldLabel htmlFor={field.name}>
+																	Instructor Last Name
+																</FieldLabel>
+																<Input
+																	type="string"
+																	id={field.name}
+																	name={field.name}
+																	placeholder="Doe"
+																	value={field.state.value}
+																	onBlur={field.handleBlur}
+																	onChange={(e) =>
+																		field.handleChange(e.target.value)
+																	}
+																	aria-invalid={isInvalid}
+																/>
+																{isInvalid && (
+																	<FieldError
+																		errors={field.state.meta.errors}
+																	/>
+																)}
+															</Field>
+														);
+													}}
+												/>
+											</Field>
+											{/* !SECTION Instructor */}
+
+											{/* SECTION Credits */}
 											<form.Field
-												name="courseNumber"
+												name="credits"
 												children={(field) => {
 													const isInvalid =
 														field.state.meta.isTouched &&
@@ -350,41 +536,7 @@ export default function CourseAddModalClient({
 													return (
 														<Field data-invalid={isInvalid} className="flex-1">
 															<FieldLabel htmlFor={field.name}>
-																Course Code
-															</FieldLabel>
-															<Input
-																type="string"
-																id={field.name}
-																name={field.name}
-																placeholder="ENL111"
-																value={field.state.value}
-																onBlur={field.handleBlur}
-																onChange={(e) =>
-																	field.handleChange(e.target.value)
-																}
-																aria-invalid={isInvalid}
-															/>
-															{isInvalid && (
-																<FieldError errors={field.state.meta.errors} />
-															)}
-														</Field>
-													);
-												}}
-											/>
-											{/* !SECTION Code */}
-
-											{/* SECTION Section */}
-											<form.Field
-												name="section"
-												children={(field) => {
-													const isInvalid =
-														field.state.meta.isTouched &&
-														!field.state.meta.isValid;
-
-													return (
-														<Field data-invalid={isInvalid} className="flex-1">
-															<FieldLabel htmlFor={field.name}>
-																Course Section
+																Course Credits
 															</FieldLabel>
 															<Input
 																type="number"
@@ -393,6 +545,7 @@ export default function CourseAddModalClient({
 																name={field.name}
 																value={field.state.value}
 																min={0}
+																step={0.5}
 																onBlur={field.handleBlur}
 																onKeyDown={(e) => {
 																	const keys = [
@@ -404,16 +557,15 @@ export default function CourseAddModalClient({
 																	];
 																	if (keys.includes(e.key)) return;
 
-																	// prevents non-numeric from going to onChange event
-																	if (!/^\d/.test(e.key)) e.preventDefault();
+																	// prevents non-numeric non decimal from going to onChange event
+																	if (!/^\d|^\./.test(e.key))
+																		e.preventDefault();
 																}}
 																onChange={(e) => {
 																	const val = e.target.valueAsNumber;
 
 																	field.handleChange(
-																		Number.isNaN(val)
-																			? ""
-																			: (val as unknown as string),
+																		Number.isNaN(val) ? 0 : val,
 																	);
 																}}
 																aria-invalid={isInvalid}
@@ -425,83 +577,31 @@ export default function CourseAddModalClient({
 													);
 												}}
 											/>
-											{/* !SECTION Section */}
-										</Field>
+											{/* !SECTION Credits */}
+										</FieldGroup>
+									</CollapsibleContent>
+								</Collapsible>
+							</FieldGroup>
+							{/* !SECTION Course Info */}
 
-										{/* SECTION Instructor */}
-										<Field
-											orientation="responsive"
-											className="@md/field-group:items-start"
-										>
-											<form.Field
-												name="instructorFirst"
-												children={(field) => {
-													const isInvalid =
-														field.state.meta.isTouched &&
-														!field.state.meta.isValid;
+							<FieldSeparator className="my-2" />
 
-													return (
-														<Field data-invalid={isInvalid} className="flex-1">
-															<FieldLabel htmlFor={field.name}>
-																Instructor First Name
-															</FieldLabel>
-															<Input
-																type="string"
-																id={field.name}
-																name={field.name}
-																placeholder="John"
-																value={field.state.value}
-																onBlur={field.handleBlur}
-																onChange={(e) =>
-																	field.handleChange(e.target.value)
-																}
-																aria-invalid={isInvalid}
-															/>
-															{isInvalid && (
-																<FieldError errors={field.state.meta.errors} />
-															)}
-														</Field>
-													);
-												}}
-											/>
+							{/* SECTION Event Date/Time */}
+							<FieldGroup>
+								<FieldSet>
+									<FieldLegend variant="label">Start and End Dates</FieldLegend>
+									<FieldDescription>
+										Course will only appear in the calendar between the selected
+										start and end dates.
+									</FieldDescription>
 
-											<form.Field
-												name="instructorLast"
-												children={(field) => {
-													const isInvalid =
-														field.state.meta.isTouched &&
-														!field.state.meta.isValid;
-
-													return (
-														<Field data-invalid={isInvalid} className="flex-1">
-															<FieldLabel htmlFor={field.name}>
-																Instructor Last Name
-															</FieldLabel>
-															<Input
-																type="string"
-																id={field.name}
-																name={field.name}
-																placeholder="Doe"
-																value={field.state.value}
-																onBlur={field.handleBlur}
-																onChange={(e) =>
-																	field.handleChange(e.target.value)
-																}
-																aria-invalid={isInvalid}
-															/>
-															{isInvalid && (
-																<FieldError errors={field.state.meta.errors} />
-															)}
-														</Field>
-													);
-												}}
-											/>
-										</Field>
-										{/* !SECTION Instructor */}
-
-										{/* SECTION Credits */}
+									{/* SECTION Start/End Dates */}
+									<Field
+										orientation="responsive"
+										className="@md/field-group:items-start"
+									>
 										<form.Field
-											name="credits"
+											name="startDate"
 											children={(field) => {
 												const isInvalid =
 													field.state.meta.isTouched &&
@@ -509,36 +609,18 @@ export default function CourseAddModalClient({
 
 												return (
 													<Field data-invalid={isInvalid} className="flex-1">
-														<FieldLabel htmlFor={field.name}>
-															Course Credits
+														<FieldLabel htmlFor={field.name} required>
+															Start Date
 														</FieldLabel>
 														<Input
-															type="number"
-															placeholder="21"
+															type="date"
 															id={field.name}
 															name={field.name}
 															value={field.state.value}
-															min={0}
-															step={0.5}
 															onBlur={field.handleBlur}
-															onKeyDown={(e) => {
-																const keys = [
-																	"Backspace",
-																	"Delete",
-																	"ArrowLeft",
-																	"ArrowRight",
-																	"Tab",
-																];
-																if (keys.includes(e.key)) return;
-
-																// prevents non-numeric non decimal from going to onChange event
-																if (!/^\d|^\./.test(e.key)) e.preventDefault();
-															}}
-															onChange={(e) => {
-																const val = e.target.valueAsNumber;
-
-																field.handleChange(Number.isNaN(val) ? 0 : val);
-															}}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
 															aria-invalid={isInvalid}
 														/>
 														{isInvalid && (
@@ -548,309 +630,268 @@ export default function CourseAddModalClient({
 												);
 											}}
 										/>
-										{/* !SECTION Credits */}
-									</FieldGroup>
-								</CollapsibleContent>
-							</Collapsible>
-						</FieldGroup>
-						{/* !SECTION Course Info */}
 
-						<FieldSeparator className="my-2" />
+										<form.Field
+											name="endDate"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
 
-						{/* SECTION Event Date/Time */}
-						<FieldGroup>
-							<FieldSet>
-								<FieldLegend variant="label">Start and End Dates</FieldLegend>
-								<FieldDescription>
-									Course will only appear in the calendar between the selected
-									start and end dates.
-								</FieldDescription>
-
-								{/* SECTION Start/End Dates */}
-								<Field
-									orientation="responsive"
-									className="@md/field-group:items-start"
-								>
-									<form.Field
-										name="startDate"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														Start Date
-													</FieldLabel>
-													<Input
-														type="date"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-
-									<form.Field
-										name="endDate"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														End Date
-													</FieldLabel>
-													<Input
-														type="date"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-								</Field>
-								{/* !SECTION Start/End Dates */}
-
-								{/* SECTION Start/End Time */}
-								<Field
-									orientation="responsive"
-									className="@md/field-group:items-start"
-								>
-									<form.Field
-										name="startTime"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														Start Time
-													</FieldLabel>
-													<Input
-														type="time"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-
-									<form.Field
-										name="endTime"
-										children={(field) => {
-											const isInvalid =
-												field.state.meta.isTouched && !field.state.meta.isValid;
-
-											return (
-												<Field data-invalid={isInvalid} className="flex-1">
-													<FieldLabel htmlFor={field.name} required>
-														End Time
-													</FieldLabel>
-													<Input
-														type="time"
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														aria-invalid={isInvalid}
-													/>
-													{isInvalid && (
-														<FieldError errors={field.state.meta.errors} />
-													)}
-												</Field>
-											);
-										}}
-									/>
-								</Field>
-								{/* !SECTION Start/End Time */}
-							</FieldSet>
-
-							{/* SECTION Days */}
-							<form.Field
-								name="days"
-								mode="array"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-
-									return (
-										<FieldSet data-invalid={isInvalid}>
-											<FieldLegend variant="label" required>
-												Days of the Week
-											</FieldLegend>
-											<FieldDescription>
-												What days of the week the course occurs on.
-											</FieldDescription>
-
-											<FieldGroup
-												data-slot="checkbox-group"
-												className="grid grid-cols-4"
-											>
-												{days.map((day) => (
-													<Field
-														key={day.value}
-														data-invalid={isInvalid}
-														orientation="horizontal"
-														className="flex-1"
-													>
-														<Checkbox
-															id={`course-day-${day.value}`}
-															name={field.name}
-															aria-invalid={isInvalid}
-															checked={field.state.value.includes(day.value)}
-															onCheckedChange={(checked) => {
-																if (checked) {
-																	field.pushValue(day.value);
-																} else {
-																	const index = field.state.value.indexOf(
-																		day.value,
-																	);
-																	if (index > -1) {
-																		field.removeValue(index);
-																	}
-																}
-															}}
-														/>
-														<FieldLabel htmlFor={`course-day-${day.value}`}>
-															{day.label}
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															End Date
 														</FieldLabel>
+														<Input
+															type="date"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
 													</Field>
-												))}
-											</FieldGroup>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</FieldSet>
-									);
-								}}
-							/>
-							{/* !SECTION Days */}
+												);
+											}}
+										/>
+									</Field>
+									{/* !SECTION Start/End Dates */}
 
-							{/* SECTION Online */}
-							<form.Field
-								name="isOnline"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
+									{/* SECTION Start/End Time */}
+									<Field
+										orientation="responsive"
+										className="@md/field-group:items-start"
+									>
+										<form.Field
+											name="startTime"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
 
-									return (
-										<Field data-invalid={isInvalid} orientation="horizontal">
-											<Checkbox
-												id={field.name}
-												name={field.name}
-												aria-invalid={isInvalid}
-												checked={field.state.value}
-												onCheckedChange={(checked) => {
-													field.setValue(checked);
-												}}
-											/>
-											<FieldLabel htmlFor={field.name}>
-												Course is Online
-											</FieldLabel>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
-							{/* !SECTION Online */}
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															Start Time
+														</FieldLabel>
+														<Input
+															type="time"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
 
-							<FieldSeparator />
+										<form.Field
+											name="endTime"
+											children={(field) => {
+												const isInvalid =
+													field.state.meta.isTouched &&
+													!field.state.meta.isValid;
 
-							{/* SECTION Color */}
-							<form.Field
-								name="color"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
+												return (
+													<Field data-invalid={isInvalid} className="flex-1">
+														<FieldLabel htmlFor={field.name} required>
+															End Time
+														</FieldLabel>
+														<Input
+															type="time"
+															id={field.name}
+															name={field.name}
+															value={field.state.value}
+															onBlur={field.handleBlur}
+															onChange={(e) =>
+																field.handleChange(e.target.value)
+															}
+															aria-invalid={isInvalid}
+														/>
+														{isInvalid && (
+															<FieldError errors={field.state.meta.errors} />
+														)}
+													</Field>
+												);
+											}}
+										/>
+									</Field>
+									{/* !SECTION Start/End Time */}
+								</FieldSet>
 
-									return (
-										<FieldSet>
-											<FieldLegend required>Course Color</FieldLegend>
-											<FieldDescription>
-												The color of the course on your calendar.
-											</FieldDescription>
+								{/* SECTION Days */}
+								<form.Field
+									name="days"
+									mode="array"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
 
-											<div className="flex flex-row gap-2">
-												{defaultColors.map((color) => (
-													<div key={color}>
-														<button
-															type="button"
-															className={cn(
-																"size-6 rounded-full flex items-center justify-center outline-transparent outline-2 cursor-pointer",
-																field.state.value === color &&
-																	"cursor-pointer outline-border",
-															)}
-															style={{ backgroundColor: color }}
-															disabled={field.state.value === color}
-															onClick={() => field.setValue(color)}
-														>
-															{field.state.value === color && (
-																<Check className="text-white size-4" />
-															)}
-														</button>
-													</div>
-												))}
+										return (
+											<FieldSet data-invalid={isInvalid}>
+												<FieldLegend variant="label" required>
+													Days of the Week
+												</FieldLegend>
+												<FieldDescription>
+													What days of the week the course occurs on.
+												</FieldDescription>
 
-												<ColorPicker
-													className="size-6 rounded-full flex items-center justify-center outline-transparent outline-2"
-													value={field.state.value}
-													onChange={(v) =>
-														field.handleChange(
-															typeof v === "string" ? v : v.target.value,
-														)
-													}
+												<FieldGroup
+													data-slot="checkbox-group"
+													className="grid grid-cols-4"
 												>
-													{defaultColors.includes(field.state.value) ? (
-														<Palette className="text-white size-4" />
-													) : (
-														<Check className="text-white size-4" />
-													)}
-												</ColorPicker>
-											</div>
+													{days.map((day) => (
+														<Field
+															key={day.value}
+															data-invalid={isInvalid}
+															orientation="horizontal"
+															className="flex-1"
+														>
+															<Checkbox
+																id={`course-day-${day.value}`}
+																name={field.name}
+																aria-invalid={isInvalid}
+																checked={field.state.value.includes(day.value)}
+																onCheckedChange={(checked) => {
+																	if (checked) {
+																		field.pushValue(day.value);
+																	} else {
+																		const index = field.state.value.indexOf(
+																			day.value,
+																		);
+																		if (index > -1) {
+																			field.removeValue(index);
+																		}
+																	}
+																}}
+															/>
+															<FieldLabel htmlFor={`course-day-${day.value}`}>
+																{day.label}
+															</FieldLabel>
+														</Field>
+													))}
+												</FieldGroup>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</FieldSet>
+										);
+									}}
+								/>
+								{/* !SECTION Days */}
 
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</FieldSet>
-									);
-								}}
-							/>
-							{/* !SECTION Color */}
-						</FieldGroup>
-						{/* !SECTION Event Date/Time */}
-					</form>
-				</ScrollArea>
-				{/* )} */}
+								{/* SECTION Online */}
+								<form.Field
+									name="isOnline"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<Field data-invalid={isInvalid} orientation="horizontal">
+												<Checkbox
+													id={field.name}
+													name={field.name}
+													aria-invalid={isInvalid}
+													checked={field.state.value}
+													onCheckedChange={(checked) => {
+														field.setValue(checked);
+													}}
+												/>
+												<FieldLabel htmlFor={field.name}>
+													Course is Online
+												</FieldLabel>
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</Field>
+										);
+									}}
+								/>
+								{/* !SECTION Online */}
+
+								<FieldSeparator />
+
+								{/* SECTION Color */}
+								<form.Field
+									name="color"
+									children={(field) => {
+										const isInvalid =
+											field.state.meta.isTouched && !field.state.meta.isValid;
+
+										return (
+											<FieldSet>
+												<FieldLegend required>Course Color</FieldLegend>
+												<FieldDescription>
+													The color of the course on your calendar.
+												</FieldDescription>
+
+												<div className="flex flex-row gap-2">
+													{defaultColors.map((color) => (
+														<div key={color}>
+															<button
+																type="button"
+																className={cn(
+																	"size-6 rounded-full flex items-center justify-center outline-transparent outline-2 cursor-pointer",
+																	field.state.value === color &&
+																		"cursor-pointer outline-border",
+																)}
+																style={{ backgroundColor: color }}
+																disabled={field.state.value === color}
+																onClick={() => field.setValue(color)}
+															>
+																{field.state.value === color && (
+																	<Check className="text-white size-4" />
+																)}
+															</button>
+														</div>
+													))}
+
+													<ColorPicker
+														className="size-6 rounded-full flex items-center justify-center outline-transparent outline-2"
+														value={field.state.value}
+														onChange={(v) =>
+															field.handleChange(
+																typeof v === "string" ? v : v.target.value,
+															)
+														}
+													>
+														{defaultColors.includes(field.state.value) ? (
+															<Palette className="text-white size-4" />
+														) : (
+															<Check className="text-white size-4" />
+														)}
+													</ColorPicker>
+												</div>
+
+												{isInvalid && (
+													<FieldError errors={field.state.meta.errors} />
+												)}
+											</FieldSet>
+										);
+									}}
+								/>
+								{/* !SECTION Color */}
+							</FieldGroup>
+							{/* !SECTION Event Date/Time */}
+						</form>
+					</ScrollArea>
+				)}
 
 				<DialogFooter className="gap-2">
 					<DialogClose
@@ -862,11 +903,7 @@ export default function CourseAddModalClient({
 					>
 						Cancel
 					</DialogClose>
-					<Button
-						// disabled={isError}
-						type="submit"
-						form="course-add-form"
-					>
+					<Button disabled={isError} type="submit" form="course-add-form">
 						Add Course
 					</Button>
 				</DialogFooter>
