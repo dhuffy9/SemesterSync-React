@@ -30,7 +30,6 @@ export const sectionTable = mysqlTable("sections", {
 	start_date: date().notNull(),
 	end_date: date().notNull(),
 	delivery_method: varchar({ length: 50 }).notNull(),
-	class_type: varchar({ length: 100 }),
 	course_attribute: varchar({ length: 100 }).notNull(),
 	class_comments: longtext(),
 	avail_seats: varchar({ length: 100 }).notNull(),
