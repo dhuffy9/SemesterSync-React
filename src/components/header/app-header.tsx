@@ -1,30 +1,32 @@
-"use client"
+"use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect } from "react";
+import useUserStore from "@/stores/user-store";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SidebarTrigger } from "../ui/sidebar";
 import ShareDropdown from "./share-dropdown";
-import useUserStore from "@/stores/user-store";
-
 
 export default function AppHeader() {
-
 	const activeTab = useUserStore((state) => state.getActiveTab());
-    const updataTabData = useUserStore((state) => state.updateTabDate);
+	const updataTabData = useUserStore((state) => state.updateTabDate);
 
-	updataTabData(activeTab.id, new Date());
+	useEffect(() => {
+		updataTabData(activeTab.id, new Date());
+	}, [activeTab.id, updataTabData]);
 
-    const today = activeTab.selectedDate ? new Date(activeTab.selectedDate) : new Date();
+	const today = activeTab.selectedDate
+		? new Date(activeTab.selectedDate)
+		: new Date();
 
+	const changeWeek = (direction: number) => {
+		if (!activeTab) return;
 
-    const changeWeek = (direction: number) => {
-        if(!activeTab) return
-
-        const nextData = new Date(today);
-        nextData.setDate(today.getDate() + direction * 7);
-        updataTabData(activeTab.id, nextData);
-    }
+		const nextData = new Date(today);
+		nextData.setDate(today.getDate() + direction * 7);
+		updataTabData(activeTab.id, nextData);
+	};
 
 	return (
 		<nav className="flex flex-row items-center justify-between gap-2 p-2 border-b border-border w-full">
