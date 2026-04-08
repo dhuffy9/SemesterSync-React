@@ -1,33 +1,63 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect } from "react";
 import useUserStore from "@/stores/user-store";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { SidebarTrigger } from "../ui/sidebar";
 import ShareDropdown from "./share-dropdown";
-
+import MiniCalendar from "../sidebar/miniCalendar/mini-calendar";
 export default function AppHeader() {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const updataTabData = useUserStore((state) => state.updateTabDate);
 
-	useEffect(() => {
-		updataTabData(activeTab.id, new Date());
-	}, [activeTab.id, updataTabData]);
+	if(!activeTab) {
+		return null
+	}
 
-	const today = activeTab.selectedDate
-		? new Date(activeTab.selectedDate)
-		: new Date();
+	const monthNames = [
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December",
+	];
+	
+	const selectedDate = activeTab.selectedDate ? new Date(activeTab.selectedDate) : new Date();
+
+	const year = selectedDate.getFullYear();
+	const month = selectedDate.getMonth();
+
 
 	const changeWeek = (direction: number) => {
-		if (!activeTab) return;
-
-		const nextData = new Date(today);
-		nextData.setDate(today.getDate() + direction * 7);
-		updataTabData(activeTab.id, nextData);
+		const nextDate = new Date(selectedDate);
+		nextDate.setDate(selectedDate.getDate() + direction * 7);
+		updataTabData(activeTab.id, nextDate);
 	};
 
+	const goToToday = () =>{
+		updataTabData(activeTab.id, new Date());
+		console.log(activeTab.selectedDate)
+	}
+
+	const nextMonth = () => {
+		const nextDate = new Date(selectedDate);
+		nextDate.setMonth(nextDate.getMonth() + 1, selectedDate.getDay())
+		updataTabData(activeTab.id, nextDate);
+	}
+
+
+	// nextSemester
+
+	// nextYear
+	
 	return (
 		<nav className="flex flex-row items-center justify-between gap-2 p-2 border-b border-border w-full">
 			<div className="flex flex-row items-center gap-2">
@@ -39,18 +69,18 @@ export default function AppHeader() {
 					</Button>
 					<Popover>
 						<PopoverTrigger render={<Button variant="ghost" />}>
-							March 4, 2026
+							{`${monthNames[month]} ${year}`}
 						</PopoverTrigger>
-						<PopoverContent className="flex flex-row gap-2 p-0">
+						<PopoverContent className="flex flex-row gap-2 p-0 w-auto">
 							<div className="flex flex-col gap-2 bg-accent rounded-l-lg p-2 border-r border-border">
-								<Button variant="outline">Today</Button>
-								<Button variant="outline">Next Month</Button>
+								<Button variant="outline" onClick={() => goToToday()}>Today</Button>
+								<Button variant="outline" onClick={nextMonth}>Next Month</Button>
 								<Button variant="outline">Next Semester</Button>
-								<Button variant="outline">Next Year</Button>
+								<Button variant="outline">Next Year</Button> 	
 							</div>
 
 							<div className="p-2 rounded-r-lg">
-								<p>Calendar will go here</p>
+								<MiniCalendar/>
 							</div>
 						</PopoverContent>
 					</Popover>

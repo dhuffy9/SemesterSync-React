@@ -3,9 +3,14 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import useUserStore from "@/stores/user-store";
 
 export default function MiniCalendar() {
-	const [currentDate, setCurrentDate] = useState(new Date());
+	const activeTab = useUserStore((state) => state.getActiveTab());
+	const updataTabData = useUserStore((state) => state.updateTabDate);
+
+	const [selectedDay, setSelectedDay] =  useState<number | null>(null)
+
 
 	const monthNames = [
 		"January",
@@ -26,22 +31,30 @@ export default function MiniCalendar() {
 
 	const today = new Date();
 
-	function changeMonth(direction: number) {
-		setCurrentDate((prev) => {
-			return new Date(prev.getFullYear(), prev.getMonth() + direction, 1);
-		});
+	const changeMonth = (direction: number) => {
+		const nextDate = new Date(selectedDate);
+		nextDate.setMonth(nextDate.getMonth() + direction, selectedDate.getDay())
+		updataTabData(activeTab.id, nextDate);
 	}
 
-	function getDaysInMonth(year: number, month: number) {
+	const getDaysInMonth = (year: number, month: number) =>{
 		return new Date(year, month + 1, 0).getDate(); // months start at 0
 	}
 
-	function getFirstDayOfMonth(year: number, month: number) {
+	const getFirstDayOfMonth = (year: number, month: number) =>{
 		return new Date(year, month, 1).getDay();
 	}
 
-	const year = currentDate.getFullYear();
-	const month = currentDate.getMonth();
+	const goToDay = (day : number) => {
+		setSelectedDay(day);
+		updataTabData(activeTab.id, new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day));
+	}
+
+
+	const selectedDate = activeTab.selectedDate ? new Date(activeTab.selectedDate) : new Date();
+
+	const year = selectedDate.getFullYear();
+	const month = selectedDate.getMonth();
 
 	const daysInMonth = getDaysInMonth(year, month);
 	const firstDay = getFirstDayOfMonth(year, month);
@@ -84,17 +97,25 @@ export default function MiniCalendar() {
 			</div>
 			<div className="grid grid-cols-7  text-center">
 				{calendarDays.map((day, index) => {
+
 					const isSelected =
 						day === today.getDate() &&
 						month === today.getMonth() &&
 						year === today.getFullYear();
+
+					if(day == null){
+						return (<span key={`${index}_${day}`}></span>)
+					}
 
 					return (
 						<Button
 							key={`${index}_${day}`}
 							variant={isSelected ? "default" : "ghost"}
 							size={"lg"}
-							className="rounded-full font-normal"
+							className={`${selectedDay === day? "border-dashed border-primary" : "" }rounded-full font-normal`}
+
+
+							onClick={() => goToDay(day)}
 						>
 							{day}
 						</Button>
