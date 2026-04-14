@@ -7,6 +7,12 @@ import {
 	ComboboxItem,
 	ComboboxList,
 } from "@/components/ui/combobox";
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Separator } from "@/components/ui/separator";
 import type { CourseResponse } from "@/data/courses";
 import { cn } from "@/lib/utils";
 
@@ -123,15 +129,38 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 											</p>
 
 											<div className="flex flex-col">
-												{meetingTimes.map((meeting) => (
-													<div
-														key={meeting.days.join()}
-														className="flex flex-row items-center justify-between font-mono gap-2"
-													>
-														<p>{meeting.days.join("")}</p>
-														<p>{meeting.times.join("")}</p>
+												{meetingTimes.length > 1 && (
+													<HoverCard>
+														<HoverCardTrigger className="text-right">
+															Multiple Times
+															{/* <div className="flex flex-row items-center justify-between font-mono gap-2">
+																<p>{meetingTimes[0].days.join("")}</p>
+																<p>{meetingTimes[0].times.join("")}</p>
+																<Plus className="size-4" />
+															</div> */}
+														</HoverCardTrigger>
+														<HoverCardContent>
+															<p>All Meeting Times</p>
+															<Separator />
+															{meetingTimes.map((meeting) => (
+																<div
+																	key={`${courseKey}-${section.section_id}-${meeting.days.join("")}-${meeting.times.join("")}`}
+																	className="flex flex-row items-center justify-between font-mono gap-2"
+																>
+																	<p>{meeting.days.join("")}</p>
+																	<p>{meeting.times.join("")}</p>
+																</div>
+															))}
+														</HoverCardContent>
+													</HoverCard>
+												)}
+
+												{meetingTimes.length === 1 && (
+													<div className="flex flex-row items-center justify-between font-mono gap-2">
+														<p>{meetingTimes[0].days.join("")}</p>
+														<p>{meetingTimes[0].times.join("")}</p>
 													</div>
-												))}
+												)}
 											</div>
 										</div>
 									</div>
