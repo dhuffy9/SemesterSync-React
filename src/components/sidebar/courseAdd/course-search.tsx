@@ -1,8 +1,9 @@
 "use client";
 
+import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,6 +36,25 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 		setCoursesByTerm(courses[selectedTerm] || []);
 	}, [selectedTerm, courses]);
 
+	const [scrollParentRef, setScrollParentRef] = useState<HTMLDivElement | null>(
+		null,
+	);
+	const virtualizer = useVirtualizer({
+		count: coursesByTerm.length,
+		getScrollElement: () => scrollParentRef,
+		estimateSize: () => 75,
+		measureElement: (element) => element.getBoundingClientRect().height,
+		gap: 8,
+		overscan: 2,
+	});
+	const virtualItems = virtualizer.getVirtualItems();
+
+	const refCallback = useCallback((node: HTMLDivElement) => {
+		if (node) {
+			setScrollParentRef(node);
+		}
+	}, []);
+
 	if (typeof courses === "number")
 		return (
 			<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">
@@ -64,43 +84,65 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 							<Separator />
 						</Fragment>
 					)}
-					<ScrollArea className="h-96">
-						{showingCourses &&
-							coursesByTerm.map((course, index) => (
-								<button
-									onClick={() => {
-										setShowingCourses(false);
-										setSectionsCourseIndex(index);
-									}}
-									key={`${course.course_id}-${course.course_code}`}
-									type="button"
-									className={clsx(
-										"rounded-lg border border-border p-2 flex flex-row gap-2 items-center justify-between cursor-pointer w-full text-left",
-										{
-											"my-2": index !== 0,
-										},
-									)}
-								>
-									<div className="flex flex-col gap-2">
-										<p>{course.course_title}</p>
+					<ScrollArea className="h-96" ref={refCallback}>
+						{showingCourses && (
+							<div
+								style={{ height: `${virtualizer.getTotalSize()}px` }}
+								className="relative w-full"
+							>
+								{virtualItems.map((vItem) => {
+									const course = coursesByTerm[vItem.index];
 
-										<div className="flex flex-row items-center text-muted-foreground gap-2">
-											<p>{course.course_code.replaceAll("#", "")}</p>
-											<Separator orientation="vertical" />
-											<p>
-												{course.credits} Credit
-												{parseFloat(course.credits) > 1 && "s"}
-											</p>
-											<Separator orientation="vertical" />
-											<p>
-												{course.sections.length} Section
-												{course.sections.length > 1 && "s"}
-											</p>
+									return (
+										<div
+											key={vItem.key}
+											className="absolute top-0 left-0 w-full"
+											style={{
+												transform: `translateY(${vItem.start}px)`,
+												height: `${vItem.size}px`,
+											}}
+										>
+											<button
+												ref={virtualizer.measureElement}
+												data-index={vItem.index}
+												onClick={() => {
+													setShowingCourses(false);
+													setSectionsCourseIndex(vItem.index);
+													console.log(vItem.index);
+												}}
+												key={`${course.course_id}-${course.course_code}`}
+												type="button"
+												className={clsx(
+													"rounded-lg border border-border p-2 flex flex-row gap-2 items-center justify-between cursor-pointer w-full text-left",
+													{
+														// "my-2": vItem.index !== 0,
+													},
+												)}
+											>
+												<div className="flex flex-col gap-2">
+													<p>{course.course_title}</p>
+
+													<div className="flex flex-row items-center text-muted-foreground gap-2">
+														<p>{course.course_code.replaceAll("#", "")}</p>
+														<Separator orientation="vertical" />
+														<p>
+															{course.credits} Credit
+															{parseFloat(course.credits) > 1 && "s"}
+														</p>
+														<Separator orientation="vertical" />
+														<p>
+															{course.sections.length} Section
+															{course.sections.length > 1 && "s"}
+														</p>
+													</div>
+												</div>
+												<ChevronRight className="size-4" />
+											</button>
 										</div>
-									</div>
-									<ChevronRight className="size-4" />
-								</button>
-							))}
+									);
+								})}
+							</div>
+						)}
 
 						{!showingCourses && (
 							<Fragment>
@@ -110,6 +152,7 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 										className={"w-full"}
 										onClick={() => {
 											setShowingCourses(true);
+											virtualizer.scrollToIndex(sectionsCourseIndex + 4);
 										}}
 									>
 										<ChevronLeft /> Back
@@ -193,8 +236,12 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 																		{meeting.days.length === 2 &&
 																			index === 0 && <span> & </span>}
 																		{meeting.days.length >= 3 &&
-																			index < meeting.days.length - 1 && (
+																			index < meeting.days.length - 2 && (
 																				<span>, </span>
+																			)}
+																		{meeting.days.length >= 3 &&
+																			index === meeting.days.length - 2 && (
+																				<span> & </span>
 																			)}
 																	</Fragment>
 																))}
