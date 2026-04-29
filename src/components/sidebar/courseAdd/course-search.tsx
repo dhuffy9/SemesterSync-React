@@ -152,8 +152,8 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 
 												{section.seats_available < 0 ? (
 													<p className="text-destructive">
-														<span>Waitlist:</span>{" "}
 														{Math.abs(section.seats_available)}
+														<span> on waitlist</span>
 													</p>
 												) : (
 													<p
@@ -213,9 +213,19 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 
 														<div className="flex flex-row items-center gap-1">
 															<p className="text-muted-foreground">From</p>
-															<p>{meeting.start_time}</p>
+															<p>
+																{meeting.start_time.toLocaleTimeString(
+																	"en-US",
+																	{ hour: "2-digit", minute: "2-digit" },
+																)}
+															</p>
 															<p className="text-muted-foreground">to</p>
-															<p>{meeting.end_time}</p>
+															<p>
+																{meeting.end_time.toLocaleTimeString("en-US", {
+																	hour: "2-digit",
+																	minute: "2-digit",
+																})}
+															</p>
 														</div>
 
 														<div className="flex flex-row items-center gap-1">
@@ -257,12 +267,17 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 }
 
 function mergeMeetings(meetings: Array<Meeting>) {
-	const meetingsByTime: Array<Omit<Meeting, "day"> & { days: Array<string> }> =
-		[];
+	const meetingsByTime: Array<
+		Omit<Meeting, "day" | "start_time" | "end_time"> & {
+			days: Array<string>;
+			start_time: Date;
+			end_time: Date;
+		}
+	> = [];
 
 	for (const meeting of meetings) {
-		const startTime = meeting.start_time.slice(0, 5);
-		const endTime = meeting.end_time.slice(0, 5);
+		const startTime = new Date(`2026-04-29T${meeting.start_time}`);
+		const endTime = new Date(`2026-04-29T${meeting.end_time}`);
 		const building = meeting.building.short;
 		const room = meeting.room.name;
 		const instructors = meeting.instructors
@@ -273,8 +288,8 @@ function mergeMeetings(meetings: Array<Meeting>) {
 
 		const meetingItem = meetingsByTime.find(
 			(findMeeting) =>
-				findMeeting.start_time === startTime &&
-				findMeeting.end_time === endTime &&
+				findMeeting.start_time.toString() === startTime.toString() &&
+				findMeeting.end_time.toString() === endTime.toString() &&
 				findMeeting.building.short === building &&
 				findMeeting.room.name === room &&
 				findMeeting.instructors
