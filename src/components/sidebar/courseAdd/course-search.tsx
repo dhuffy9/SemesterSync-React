@@ -209,7 +209,8 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 									</Button>
 								</div>
 
-								{getCourse()
+								{coursesByTerm
+									.find((course) => course.course_id === showCourseSectionId)
 									?.sections.sort(
 										(a, b) =>
 											parseInt(a.section_code, 10) -
