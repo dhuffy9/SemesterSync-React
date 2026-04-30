@@ -24,26 +24,46 @@ import type { AssembledCourse, CourseResponse, Meeting } from "@/types/courses";
 
 export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
+
+	const [searchQuery, setSearchQuery] = useState("");
+	const [filteredCourses, setFilteredCourses] = useState<
+		Array<AssembledCourse>
+	>([]);
+
 	const [coursesByTerm, setCoursesByTerm] = useState<Array<AssembledCourse>>(
 		[],
 	);
 	const [showingCourses, setShowingCourses] = useState(true);
-	const [sectionsCourseIndex, setSectionsCourseIndex] = useState(-1);
-	const [selectedCourse, setSelectedCourse] = useState(-1);
-	const [selectedSection, setSelectedSection] = useState(-1);
-	const [popoverOpen, setPopoverOpen] = useState(false);
 
 	useEffect(() => {
 		if (typeof courses === "number") return;
 
 		setCoursesByTerm(courses[selectedTerm] || []);
+		setFilteredCourses(courses[selectedTerm] || []);
 	}, [selectedTerm, courses]);
+
+	useEffect(() => {
+		if (searchQuery === "") return;
+
+		const filteredCourses = coursesByTerm.filter(
+			(course) =>
+				course.course_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+				course.course_code.toLowerCase().includes(searchQuery.toLowerCase()),
+		);
+
+		setFilteredCourses(filteredCourses);
+	}, [searchQuery, coursesByTerm.filter]);
+
+	const [showCourseSectionId, setShowCourseSectionId] = useState(-1);
+	const [selectedCourse, setSelectedCourse] = useState(-1);
+	const [selectedSection, setSelectedSection] = useState(-1);
+	const [popoverOpen, setPopoverOpen] = useState(false);
 
 	const [scrollParentRef, setScrollParentRef] = useState<HTMLDivElement | null>(
 		null,
 	);
 	const virtualizer = useVirtualizer({
-		count: coursesByTerm.length,
+		count: filteredCourses.length,
 		getScrollElement: () => scrollParentRef,
 		estimateSize: () => 75,
 		measureElement: (element) => element.getBoundingClientRect().height,
@@ -57,6 +77,18 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 			setScrollParentRef(node);
 		}
 	}, []);
+
+	const getCourse = () => {
+		return coursesByTerm.find(
+			(course) => course.course_id === showCourseSectionId,
+		);
+	};
+
+	const getSection = () => {
+		return getCourse()?.sections.find(
+			(section) => section.section_id === selectedSection,
+		);
+	};
 
 	if (typeof courses === "number")
 		return (
@@ -77,7 +109,7 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 			<Popover onOpenChange={setPopoverOpen} open={popoverOpen}>
 				<PopoverTrigger className="w-full rounded-lg border border-input text-left text-sm text-muted-foreground px-2 py-1 cursor-pointer">
 					{selectedCourse > -1
-						? `${coursesByTerm[selectedCourse].course_code}-${coursesByTerm[selectedCourse].sections[selectedSection].section_code}: ${coursesByTerm[selectedCourse].course_title}`
+						? `${getCourse()?.course_code}-${getSection()?.section_code}: ${getCourse()?.course_title}`
 						: `Select A ${coursesByTerm[0].term_name} Course`}
 				</PopoverTrigger>
 				<PopoverContent align="start" style={{ width: "var(--anchor-width)" }}>
@@ -85,18 +117,30 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 						<Fragment>
 							<Input
 								placeholder={`Search ${coursesByTerm[0].term_name} Courses...`}
+								value={searchQuery}
+								onChange={(e) => {
+									setSearchQuery(e.target.value);
+								}}
 							/>
 							<Separator />
 						</Fragment>
 					)}
 					<ScrollArea className="h-96" ref={refCallback}>
+						{filteredCourses.length === 0 && (
+							<div className="text-center w-full text-muted-foreground">
+								<p>No Courses Found.</p>
+								<p className="text-xs">
+									Tip: you can search for either the course code or course title
+								</p>
+							</div>
+						)}
 						{showingCourses && (
 							<div
 								style={{ height: `${virtualizer.getTotalSize()}px` }}
 								className="relative w-full"
 							>
 								{virtualItems.map((vItem) => {
-									const course = coursesByTerm[vItem.index];
+									const course = filteredCourses[vItem.index];
 
 									return (
 										<div
@@ -112,8 +156,7 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 												data-index={vItem.index}
 												onClick={() => {
 													setShowingCourses(false);
-													setSectionsCourseIndex(vItem.index);
-													console.log(vItem.index);
+													setShowCourseSectionId(course.course_id);
 												}}
 												key={`${course.course_id}-${course.course_code}`}
 												type="button"
@@ -157,15 +200,19 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 										className={"w-full"}
 										onClick={() => {
 											setShowingCourses(true);
-											virtualizer.scrollToIndex(sectionsCourseIndex + 4);
+											virtualizer.scrollToIndex(
+												filteredCourses.findIndex(
+													(course) => course.course_id === showCourseSectionId,
+												) + 4,
+											);
 										}}
 									>
 										<ChevronLeft /> Back
 									</Button>
 								</div>
 
-								{coursesByTerm[sectionsCourseIndex].sections
-									.sort(
+								{getCourse()
+									?.sections.sort(
 										(a, b) =>
 											parseInt(a.section_code, 10) -
 											parseInt(b.section_code, 10),
@@ -175,8 +222,8 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 											type="button"
 											key={section.section_id}
 											onClick={() => {
-												setSelectedCourse(sectionsCourseIndex);
-												setSelectedSection(index);
+												setSelectedCourse(showCourseSectionId);
+												setSelectedSection(section.section_id);
 												setShowingCourses(true);
 												setPopoverOpen(false);
 											}}
