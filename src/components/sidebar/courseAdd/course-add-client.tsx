@@ -2,6 +2,7 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
+import clsx from "clsx";
 import { Check, ChevronDown, Palette, PlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -17,10 +18,10 @@ import {
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import type { CourseResponse } from "@/data/courses";
 import type { TermResponse } from "@/data/terms";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
+import type { CourseResponse } from "@/types/courses";
 import { Button } from "../../ui/button";
 import { Checkbox } from "../../ui/checkbox";
 import { ColorPicker } from "../../ui/color-picker";
@@ -116,6 +117,7 @@ export default function CourseAddModalClient({
 	const addCourse = useUserStore((state) => state.addCourse);
 
 	const [courseSpecificOpen, setCourseSpecificOpen] = useState(true);
+	const [popoverOpen, setPopoverOpen] = useState(false);
 
 	const form = useForm({
 		defaultValues: {
@@ -205,7 +207,12 @@ export default function CourseAddModalClient({
 				)}
 
 				{!isTermError && (
-					<ScrollArea className="max-h-[70vh] pr-4">
+					<ScrollArea
+						className={clsx("max-h-[70vh] pr-4", {
+							"[&_div]:overflow-y-hidden! [&_div]:data-[slot='scroll-area-scrollbar']:hidden!":
+								popoverOpen,
+						})}
+					>
 						<form
 							id="course-add-form"
 							onSubmit={(e) => {
@@ -213,7 +220,11 @@ export default function CourseAddModalClient({
 								form.handleSubmit();
 							}}
 						>
-							<CourseSearch courses={courses} />
+							<CourseSearch
+								courses={courses}
+								popoverOpen={popoverOpen}
+								setPopoverOpen={setPopoverOpen}
+							/>
 							{/* SECTION Course Info */}
 							<FieldGroup>
 								{/* SECTION Term */}

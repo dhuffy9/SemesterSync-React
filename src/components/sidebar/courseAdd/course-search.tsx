@@ -41,7 +41,15 @@ const createSectionVariants = (shouldReduceMotion: boolean | null) => ({
 
 const TRANSITION = { duration: 0.2, type: "spring" as const, bounce: 0.1 };
 
-export default function CourseSearch({ courses }: { courses: CourseResponse }) {
+export default function CourseSearch({
+	courses,
+	popoverOpen,
+	setPopoverOpen,
+}: {
+	courses: CourseResponse;
+	popoverOpen: boolean;
+	setPopoverOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 
 	const shouldReduceMotion = useReducedMotion();
@@ -80,7 +88,6 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 	const [showCourseSectionId, setShowCourseSectionId] = useState(-1);
 	const [selectedCourse, setSelectedCourse] = useState(-1);
 	const [selectedSection, setSelectedSection] = useState(-1);
-	const [popoverOpen, setPopoverOpen] = useState(false);
 
 	const [scrollParentRef, setScrollParentRef] = useState<HTMLDivElement | null>(
 		null,
