@@ -29,6 +29,9 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 	);
 	const [showingCourses, setShowingCourses] = useState(true);
 	const [sectionsCourseIndex, setSectionsCourseIndex] = useState(-1);
+	const [selectedCourse, setSelectedCourse] = useState(-1);
+	const [selectedSection, setSelectedSection] = useState(-1);
+	const [popoverOpen, setPopoverOpen] = useState(false);
 
 	useEffect(() => {
 		if (typeof courses === "number") return;
@@ -71,9 +74,11 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 
 	return (
 		<div>
-			<Popover>
+			<Popover onOpenChange={setPopoverOpen} open={popoverOpen}>
 				<PopoverTrigger className="w-full rounded-lg border border-input text-left text-sm text-muted-foreground px-2 py-1 cursor-pointer">
-					Select A {coursesByTerm[0].term_name} Course
+					{selectedCourse > -1
+						? `${coursesByTerm[selectedCourse].course_code}-${coursesByTerm[selectedCourse].sections[selectedSection].section_code}: ${coursesByTerm[selectedCourse].course_title}`
+						: `Select A ${coursesByTerm[0].term_name} Course`}
 				</PopoverTrigger>
 				<PopoverContent align="start" style={{ width: "var(--anchor-width)" }}>
 					{showingCourses && (
@@ -169,6 +174,12 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 										<button
 											type="button"
 											key={section.section_id}
+											onClick={() => {
+												setSelectedCourse(sectionsCourseIndex);
+												setSelectedSection(index);
+												setShowingCourses(true);
+												setPopoverOpen(false);
+											}}
 											className={cn(
 												clsx(
 													"rounded-lg border border-border p-2 flex flex-col gap-2 w-full text-left cursor-pointer",
