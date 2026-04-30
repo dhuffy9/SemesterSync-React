@@ -3,6 +3,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +23,30 @@ import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { AssembledCourse, CourseResponse, Meeting } from "@/types/courses";
 
+const createCourseVariants = (shouldReduceMotion: boolean | null) => ({
+	initial: shouldReduceMotion
+		? { opacity: 1, x: 0 }
+		: { opacity: 0, x: "-100%" },
+	animate: { opacity: 1, x: 0 },
+	exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "-100%" },
+});
+
+const createSectionVariants = (shouldReduceMotion: boolean | null) => ({
+	initial: shouldReduceMotion
+		? { opacity: 1, x: 0 }
+		: { opacity: 0, x: "100%" },
+	animate: { opacity: 1, x: 0 },
+	exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" },
+});
+
+const TRANSITION = { duration: 0.2, type: "spring" as const, bounce: 0.1 };
+
 export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
+
+	const shouldReduceMotion = useReducedMotion();
+	const courseVariants = createCourseVariants(shouldReduceMotion);
+	const sectionVariants = createSectionVariants(shouldReduceMotion);
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredCourses, setFilteredCourses] = useState<
@@ -111,88 +134,37 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 						: `Select A ${coursesByTerm[0].term_name} Course`}
 				</PopoverTrigger>
 				<PopoverContent align="start" style={{ width: "var(--anchor-width)" }}>
-					{showingCourses && (
-						<Fragment>
-							<Input
-								placeholder={`Search ${coursesByTerm[0].term_name} Courses...`}
-								value={searchQuery}
-								onChange={(e) => {
-									setSearchQuery(e.target.value);
-								}}
-							/>
-							<Separator />
-						</Fragment>
-					)}
-					<ScrollArea className="h-96" ref={refCallback}>
-						{filteredCourses.length === 0 && (
-							<div className="text-center w-full text-muted-foreground">
-								<p>No Courses Found.</p>
-								<p className="text-xs">
-									Tip: you can search for either the course code or course title
-								</p>
-							</div>
-						)}
-						{showingCourses && (
-							<div
-								style={{ height: `${virtualizer.getTotalSize()}px` }}
-								className="relative w-full"
-							>
-								{virtualItems.map((vItem) => {
-									const course = filteredCourses[vItem.index];
+					<div className="relative overflow-hidden">
+						<AnimatePresence initial={false} mode="popLayout">
+							{showingCourses && (
+								<motion.div
+									animate="animate"
+									initial="initial"
+									exit="exit"
+									key="search"
+									variants={courseVariants}
+									transition={TRANSITION}
+								>
+									<Input
+										placeholder={`Search ${coursesByTerm[0].term_name} Courses...`}
+										value={searchQuery}
+										onChange={(e) => {
+											setSearchQuery(e.target.value);
+										}}
+									/>
+								</motion.div>
+							)}
 
-									return (
-										<div
-											key={vItem.key}
-											className="absolute top-0 left-0 w-full"
-											style={{
-												transform: `translateY(${vItem.start}px)`,
-												height: `${vItem.size}px`,
-											}}
-										>
-											<button
-												ref={virtualizer.measureElement}
-												data-index={vItem.index}
-												onClick={() => {
-													setShowingCourses(false);
-													setShowCourseSectionId(course.course_id);
-												}}
-												key={`${course.course_id}-${course.course_code}`}
-												type="button"
-												className={clsx(
-													"rounded-lg border border-border p-2 flex flex-row gap-2 items-center justify-between cursor-pointer w-full text-left",
-													{
-														// "my-2": vItem.index !== 0,
-													},
-												)}
-											>
-												<div className="flex flex-col gap-2">
-													<p>{course.course_title}</p>
-
-													<div className="flex flex-row items-center text-muted-foreground gap-2">
-														<p>{course.course_code.replaceAll("#", "")}</p>
-														<Separator orientation="vertical" />
-														<p>
-															{course.credits} Credit
-															{parseFloat(course.credits) > 1 && "s"}
-														</p>
-														<Separator orientation="vertical" />
-														<p>
-															{course.sections.length} Section
-															{course.sections.length > 1 && "s"}
-														</p>
-													</div>
-												</div>
-												<ChevronRight className="size-4" />
-											</button>
-										</div>
-									);
-								})}
-							</div>
-						)}
-
-						{!showingCourses && (
-							<Fragment>
-								<div className="absolute top-0 left-0 p-2 rounded-b-md bg-accent border border-b-border w-full">
+							{!showingCourses && (
+								<motion.div
+									animate="animate"
+									initial="initial"
+									exit="exit"
+									key="back"
+									variants={sectionVariants}
+									transition={TRANSITION}
+									whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
+								>
 									<Button
 										variant={"outline"}
 										className={"w-full"}
@@ -207,162 +179,257 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 									>
 										<ChevronLeft /> Back
 									</Button>
-								</div>
+								</motion.div>
+							)}
+						</AnimatePresence>
+					</div>
 
-								{coursesByTerm
-									.find((course) => course.course_id === showCourseSectionId)
-									?.sections.sort(
-										(a, b) =>
-											parseInt(a.section_code, 10) -
-											parseInt(b.section_code, 10),
-									)
-									.map((section, index) => (
-										<button
-											type="button"
-											key={section.section_id}
-											onClick={() => {
-												setSelectedCourse(showCourseSectionId);
-												setSelectedSection(section.section_id);
-												setShowingCourses(true);
-												setPopoverOpen(false);
-											}}
-											className={cn(
-												clsx(
-													"rounded-lg border border-border p-2 flex flex-col gap-2 w-full text-left cursor-pointer",
-													{
-														"my-2": index !== 0,
-														"mt-14": index === 0,
-														// "border-yellow-500":
-														// 	section.seats_available / section.seats_total <
-														// 	0.5,
-														// "border-destructive":
-														// 	section.seats_available / section.seats_total <
-														// 	0.25,
-													},
-												),
-											)}
-										>
-											<div className="flex flex-row items-center gap-2 justify-between">
-												<p>
-													<span className="text-muted-foreground">
-														Section:
-													</span>{" "}
-													{section.section_code}
-												</p>
+					<Separator />
 
-												{section.seats_available < 0 ? (
-													<p className="text-destructive">
-														{Math.abs(section.seats_available)}
-														<span> on waitlist</span>
-													</p>
-												) : (
-													<p
-														className={cn(
-															clsx("", {
-																"text-yellow-600":
-																	section.seats_available /
-																		section.seats_total <
-																	0.5,
-																"text-destructive":
-																	section.seats_available /
-																		section.seats_total <
-																	0.25,
-															}),
-														)}
-													>
-														{section.seats_available} / {section.seats_total}{" "}
-														<span className="text-muted-foreground">seats</span>
-													</p>
-												)}
-											</div>
+					<ScrollArea className="h-96 overflow-x-hidden" ref={refCallback}>
+						{filteredCourses.length === 0 && (
+							<div className="text-center w-full text-muted-foreground">
+								<p>No Courses Found.</p>
+								<p className="text-xs">
+									Tip: you can search for either the course code or course title
+								</p>
+							</div>
+						)}
+						<AnimatePresence initial={false} mode="popLayout">
+							{showingCourses && (
+								<motion.div
+									style={{ height: `${virtualizer.getTotalSize()}px` }}
+									className="relative w-full"
+									animate="animate"
+									initial="initial"
+									exit="exit"
+									key="courses"
+									variants={courseVariants}
+									transition={TRANSITION}
+								>
+									{virtualItems.map((vItem) => {
+										const course = filteredCourses[vItem.index];
 
-											<div>
-												<p className="text-md font-bold w-full border border-transparent border-b-border pb-1 mb-1">
-													Meetings:
-												</p>
-												{mergeMeetings(section.meetings).map((meeting) => (
-													<div
-														key={`${section.section_id}-${meeting.id}`}
-														className="border border-transparent border-b-border border-dashed pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0"
-													>
-														<div className="flex flex-row items-center gap-1">
+										return (
+											<div
+												key={vItem.key}
+												className="absolute top-0 left-0 w-full"
+												style={{
+													transform: `translateY(${vItem.start}px)`,
+													height: `${vItem.size}px`,
+												}}
+											>
+												<motion.button
+													whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
+													ref={virtualizer.measureElement}
+													data-index={vItem.index}
+													onClick={() => {
+														setShowingCourses(false);
+														setShowCourseSectionId(course.course_id);
+													}}
+													key={`${course.course_id}-${course.course_code}`}
+													type="button"
+													className={clsx(
+														"rounded-lg border border-border p-2 flex flex-row gap-2 items-center justify-between cursor-pointer w-full text-left",
+														{
+															// "my-2": vItem.index !== 0,
+														},
+													)}
+												>
+													<div className="flex flex-col gap-2">
+														<p>{course.course_title}</p>
+
+														<div className="flex flex-row items-center text-muted-foreground gap-2">
+															<p>{course.course_code.replaceAll("#", "")}</p>
+															<Separator orientation="vertical" />
 															<p>
-																{meeting.days.map((day, index) => (
-																	<Fragment key={day}>
-																		{day}
-																		{meeting.days.length === 2 &&
-																			index === 0 && <span> & </span>}
-																		{meeting.days.length >= 3 &&
-																			index < meeting.days.length - 2 && (
-																				<span>, </span>
-																			)}
-																		{meeting.days.length >= 3 &&
-																			index === meeting.days.length - 2 && (
-																				<span> & </span>
-																			)}
-																	</Fragment>
-																))}
+																{course.credits} Credit
+																{parseFloat(course.credits) > 1 && "s"}
 															</p>
-															<p className="text-muted-foreground">in</p>
-															<Tooltip>
-																<TooltipTrigger render={<p />}>
-																	{meeting.building.short}
-																</TooltipTrigger>
-																<TooltipContent>
-																	{meeting.building.long}
-																</TooltipContent>
-															</Tooltip>
-															<p>{meeting.room.name}</p>
-														</div>
-
-														<div className="flex flex-row items-center gap-1">
-															<p className="text-muted-foreground">From</p>
+															<Separator orientation="vertical" />
 															<p>
-																{meeting.start_time.toLocaleTimeString(
-																	"en-US",
-																	{ hour: "2-digit", minute: "2-digit" },
-																)}
-															</p>
-															<p className="text-muted-foreground">to</p>
-															<p>
-																{meeting.end_time.toLocaleTimeString("en-US", {
-																	hour: "2-digit",
-																	minute: "2-digit",
-																})}
-															</p>
-														</div>
-
-														<div className="flex flex-row items-center gap-1">
-															<p className="text-muted-foreground">
-																Instructed by{" "}
-															</p>
-															<p>
-																{meeting.instructors
-																	.map(
-																		(instructor) =>
-																			`${instructor.first_name} ${instructor.last_name}`,
-																	)
-																	.map((instructor, index) => (
-																		<Fragment key={instructor}>
-																			{instructor}
-																			{meeting.instructors.length === 2 &&
-																				index === 0 && <span> & </span>}
-																			{meeting.instructors.length >= 3 &&
-																				index <
-																					meeting.instructors.length - 1 && (
-																					<span>, </span>
-																				)}
-																		</Fragment>
-																	))}
+																{course.sections.length} Section
+																{course.sections.length > 1 && "s"}
 															</p>
 														</div>
 													</div>
-												))}
+													<ChevronRight className="size-4" />
+												</motion.button>
 											</div>
-										</button>
-									))}
-							</Fragment>
-						)}
+										);
+									})}
+								</motion.div>
+							)}
+
+							{!showingCourses && (
+								<motion.div
+									animate="animate"
+									initial="initial"
+									exit="exit"
+									key="sections"
+									variants={sectionVariants}
+									transition={TRANSITION}
+								>
+									{coursesByTerm
+										.find((course) => course.course_id === showCourseSectionId)
+										?.sections.sort(
+											(a, b) =>
+												parseInt(a.section_code, 10) -
+												parseInt(b.section_code, 10),
+										)
+										.map((section, index) => (
+											<motion.button
+												whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
+												type="button"
+												key={section.section_id}
+												onClick={() => {
+													setSelectedCourse(showCourseSectionId);
+													setSelectedSection(section.section_id);
+													setShowingCourses(true);
+													setPopoverOpen(false);
+												}}
+												className={cn(
+													clsx(
+														"rounded-lg border border-border p-2 flex flex-col gap-2 w-full text-left cursor-pointer",
+														{
+															"my-2": index !== 0,
+															// "border-yellow-500":
+															// 	section.seats_available / section.seats_total <
+															// 	0.5,
+															// "border-destructive":
+															// 	section.seats_available / section.seats_total <
+															// 	0.25,
+														},
+													),
+												)}
+											>
+												<div className="flex flex-row items-center gap-2 justify-between">
+													<p>
+														<span className="text-muted-foreground">
+															Section:
+														</span>{" "}
+														{section.section_code}
+													</p>
+
+													{section.seats_available < 0 ? (
+														<p className="text-destructive">
+															{Math.abs(section.seats_available)}
+															<span> on waitlist</span>
+														</p>
+													) : (
+														<p
+															className={cn(
+																clsx("", {
+																	"text-yellow-600":
+																		section.seats_available /
+																			section.seats_total <
+																		0.5,
+																	"text-destructive":
+																		section.seats_available /
+																			section.seats_total <
+																		0.25,
+																}),
+															)}
+														>
+															{section.seats_available} / {section.seats_total}{" "}
+															<span className="text-muted-foreground">
+																seats
+															</span>
+														</p>
+													)}
+												</div>
+
+												<div>
+													<p className="text-md font-bold w-full border border-transparent border-b-border pb-1 mb-1">
+														Meetings:
+													</p>
+													{mergeMeetings(section.meetings).map((meeting) => (
+														<div
+															key={`${section.section_id}-${meeting.id}`}
+															className="border border-transparent border-b-border border-dashed pb-1 mb-1 last:border-b-0 last:pb-0 last:mb-0"
+														>
+															<div className="flex flex-row items-center gap-1">
+																<p>
+																	{meeting.days.map((day, index) => (
+																		<Fragment key={day}>
+																			{day}
+																			{meeting.days.length === 2 &&
+																				index === 0 && <span> & </span>}
+																			{meeting.days.length >= 3 &&
+																				index < meeting.days.length - 2 && (
+																					<span>, </span>
+																				)}
+																			{meeting.days.length >= 3 &&
+																				index === meeting.days.length - 2 && (
+																					<span> & </span>
+																				)}
+																		</Fragment>
+																	))}
+																</p>
+																<p className="text-muted-foreground">in</p>
+																<Tooltip>
+																	<TooltipTrigger render={<p />}>
+																		{meeting.building.short}
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		{meeting.building.long}
+																	</TooltipContent>
+																</Tooltip>
+																<p>{meeting.room.name}</p>
+															</div>
+
+															<div className="flex flex-row items-center gap-1">
+																<p className="text-muted-foreground">From</p>
+																<p>
+																	{meeting.start_time.toLocaleTimeString(
+																		"en-US",
+																		{ hour: "2-digit", minute: "2-digit" },
+																	)}
+																</p>
+																<p className="text-muted-foreground">to</p>
+																<p>
+																	{meeting.end_time.toLocaleTimeString(
+																		"en-US",
+																		{
+																			hour: "2-digit",
+																			minute: "2-digit",
+																		},
+																	)}
+																</p>
+															</div>
+
+															<div className="flex flex-row items-center gap-1">
+																<p className="text-muted-foreground">
+																	Instructed by{" "}
+																</p>
+																<p>
+																	{meeting.instructors
+																		.map(
+																			(instructor) =>
+																				`${instructor.first_name} ${instructor.last_name}`,
+																		)
+																		.map((instructor, index) => (
+																			<Fragment key={instructor}>
+																				{instructor}
+																				{meeting.instructors.length === 2 &&
+																					index === 0 && <span> & </span>}
+																				{meeting.instructors.length >= 3 &&
+																					index <
+																						meeting.instructors.length - 1 && (
+																						<span>, </span>
+																					)}
+																			</Fragment>
+																		))}
+																</p>
+															</div>
+														</div>
+													))}
+												</div>
+											</motion.button>
+										))}
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</ScrollArea>
 				</PopoverContent>
 			</Popover>
