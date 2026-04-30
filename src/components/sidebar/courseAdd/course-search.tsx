@@ -79,9 +79,7 @@ export default function CourseSearch({ courses }: { courses: CourseResponse }) {
 	}, []);
 
 	const getCourse = () => {
-		return coursesByTerm.find(
-			(course) => course.course_id === showCourseSectionId,
-		);
+		return coursesByTerm.find((course) => course.course_id === selectedCourse);
 	};
 
 	const getSection = () => {
