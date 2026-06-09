@@ -38,7 +38,7 @@ export default function ClassList() {
     firstWeek.setDate(selectedDate.getDate() - selectedDate.getDay()); // 6(1-31) - 1 (0-6)
 
 	return (
-		<div className="flex flex-row w-full overflow-hidden bg-accent pb-4">
+		<div className="flex flex-row w-full max-w-full overflow-x-hidden pb-4">
 			<div className="w-[80px]">
                 <div className="h-[100px] border-b">
                 </div>
@@ -55,7 +55,7 @@ export default function ClassList() {
                     })
                 }
             </div>
-			<div className="flex flex-col flex-1">
+			<div className="flex flex-col flex-1 min-w-0">
 				<div className="w-full h-[100px] grid grid-cols-7 border-b">
                     {days.map((day, i) => {
                         const currentDate = new Date(firstWeek);
@@ -79,7 +79,7 @@ export default function ClassList() {
                             )
                     })}
                 </div>
-                    <div className="grid grid-cols-7 w-full">
+                    <div className="grid grid-cols-7 w-full overflow-x-hidden">
                         {Array.from({ length: rows * cols }).map((_, i) => {
                             const col = i % cols;
                             const row = Math.floor(i / cols);
