@@ -285,6 +285,15 @@ export default function CourseAddList({
 									(a, b) =>
 										parseInt(a.section_code, 10) - parseInt(b.section_code, 10),
 								)
+								.sort((a, b) => {
+									const aSelected = selectedSection.includes(a.section_id)
+										? 1
+										: 0;
+									const bSelected = selectedSection.includes(b.section_id)
+										? 1
+										: 0;
+									return bSelected - aSelected;
+								})
 								.map((section, index) => (
 									<motion.button
 										whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
