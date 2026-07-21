@@ -125,18 +125,6 @@ export default function CourseAddList({
 		}
 	}, []);
 
-	const getCourse = () => {
-		return coursesByTerm.find((course) =>
-			selectedCourse.includes(course.course_id),
-		);
-	};
-
-	const getSection = () => {
-		return getCourse()?.sections.find((section) =>
-			selectedSection.includes(section.section_id),
-		);
-	};
-
 	if (typeof courses === "number")
 		return (
 			<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">

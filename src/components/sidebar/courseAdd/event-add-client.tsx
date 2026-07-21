@@ -78,7 +78,6 @@ export default function EventAddModalClient({
 	const [selectedCourse, setSelectedCourse] = useState<
 		Array<AssembledCourseSingleSection>
 	>([]);
-	const [popoverOpen, setPopoverOpen] = useState(false);
 
 	const shouldReduceMotion = useReducedMotion();
 	const courseVariants = createCourseVariants(shouldReduceMotion);
