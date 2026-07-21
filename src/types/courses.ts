@@ -49,6 +49,10 @@ export type AssembledCourse = {
 	sections: Array<Section>;
 };
 
+export type AssembledCourseSingleSection = Omit<AssembledCourse, "sections"> & {
+	section: Section;
+};
+
 type CourseError = number;
 
 export type CourseResponse =
