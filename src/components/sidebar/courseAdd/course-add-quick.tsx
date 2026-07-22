@@ -1,10 +1,11 @@
 "use client";
-
 import clsx from "clsx";
 import { ArrowLeft, PlusIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useState } from "react";
+import { v4 as uuid } from "uuid";
 import { Button } from "@/components/ui/button";
+import { ColorPicker } from "@/components/ui/color-picker";
 import {
 	Popover,
 	PopoverContent,
@@ -14,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { createSwipeRightVariant, TRANSITION } from "@/lib/animation";
 import { cn } from "@/lib/utils";
+import useUserStore from "@/stores/user-store";
 import type {
 	AssembledCourseSingleSection,
 	CourseResponse,
@@ -30,11 +32,28 @@ const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
 		>([]);
+		const [selectedColor, setSelectedColor] = useState<string>("#4285F4");
+
+		const tab = useUserStore((state) => state.getActiveTab());
+		const courseEventAdd = useUserStore((state) => state.addCourseEvent);
 
 		const shouldReduceMotion = useReducedMotion();
 		const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
 
 		console.log(selectedCourse);
+
+		const handleAddCourse = () => {
+			for (const course of selectedCourse) {
+				courseEventAdd(tab.id, {
+					eventId: uuid(),
+					color: selectedColor,
+					...course,
+				});
+			}
+
+			setSelectedCourse([]);
+			setSelectedOption("none");
+		};
 
 		return (
 			<motion.div
@@ -141,6 +160,7 @@ const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 							<Button
 								disabled={selectedCourse.length === 0}
 								variant={selectedCourse.length === 0 ? "secondary" : "default"}
+								onClick={handleAddCourse}
 								className="flex-1"
 							>
 								<PlusIcon /> Quick Add
@@ -162,6 +182,14 @@ const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 								)}{" "}
 								credits
 							</Button>
+
+							<ColorPicker
+								className="size-8"
+								value={selectedColor}
+								onChange={(v) =>
+									setSelectedColor(typeof v === "string" ? v : v.target.value)
+								}
+							/>
 						</div>
 					</div>
 				</div>

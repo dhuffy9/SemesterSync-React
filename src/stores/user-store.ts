@@ -1,13 +1,19 @@
 import { v4 as uuid } from "uuid";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { Course, Tab, UserState, UserStore } from "@/types/user-store";
+import type {
+	CourseEvent,
+	Tab,
+	UserState,
+	UserStore,
+} from "@/types/user-store";
 
 // This will be the default state that the user will see when they first load
 const defaultTab: Tab = {
 	id: uuid(),
 	name: `Schedule 1`,
-	courses: [],
+	courseEvents: [],
+	nonCourseEvents: [],
 	totalCredits: 0,
 	selectedDate: new Date(),
 };
@@ -34,7 +40,8 @@ const useUserStore = create<UserStore>()(
 						{
 							id: uuid(),
 							name: `Schedule ${get().tabs.length + 1}`,
-							courses: [],
+							courseEvents: [],
+							nonCourseEvents: [],
 							totalCredits: 0,
 							selectedDate: new Date(),
 						},
@@ -65,8 +72,8 @@ const useUserStore = create<UserStore>()(
 						tab.id === id
 							? {
 									...tab, // update credits by looping through all courses and adding up credits
-									totalCredits: tab.courses.reduce(
-										(acc, course) => acc + course.credits,
+									totalCredits: tab.courseEvents.reduce(
+										(acc, course) => acc + parseFloat(course.credits),
 										0, // start accumulator at 0
 									),
 								}
@@ -79,14 +86,14 @@ const useUserStore = create<UserStore>()(
 
 			setActiveTerm: (term: string) => set({ activeTerm: term }),
 
-			addCourse: (tabId: string, course: Course) => {
+			addCourseEvent: (tabId: string, course: CourseEvent) => {
 				set({
 					// loop through all tabs, find with matching id
 					tabs: get().tabs.map((tab) =>
 						tab.id === tabId
 							? {
 									...tab, // spread existing courses & add new course passed to func
-									courses: [...tab.courses, course],
+									courseEvents: [...tab.courseEvents, course],
 								}
 							: tab,
 					),
@@ -95,15 +102,15 @@ const useUserStore = create<UserStore>()(
 				// re-calc the total credits
 				get().recalculateTabCredits(tabId);
 			},
-			updateCourse: (tabId: string, course: Course) => {
+			updateCourseEvent: (tabId: string, course: CourseEvent) => {
 				set({
 					// loop through all tabs, find with matching id
 					tabs: get().tabs.map((tab) =>
 						tab.id === tabId
 							? {
 									...tab, // loop through all course & replace the one with matching id
-									courses: tab.courses.map((c) =>
-										c.id === course.id ? course : c,
+									courseEvents: tab.courseEvents.map((c) =>
+										c.eventId === course.eventId ? course : c,
 									),
 								}
 							: tab,
@@ -113,14 +120,16 @@ const useUserStore = create<UserStore>()(
 				// re-calc the total credits
 				get().recalculateTabCredits(tabId);
 			},
-			removeCourse: (tabId: string, courseId: string) => {
+			removeCourseEvent: (tabId: string, eventId: string) => {
 				set({
 					// loop through all tabs, find with matching id
 					tabs: get().tabs.map((tab) =>
 						tab.id === tabId
 							? {
 									...tab, // loop through all courses & remove the one with matching id
-									courses: tab.courses.filter((c) => c.id !== courseId),
+									courseEvents: tab.courseEvents.filter(
+										(c) => c.eventId !== eventId,
+									),
 								}
 							: tab,
 					),
@@ -133,7 +142,22 @@ const useUserStore = create<UserStore>()(
 		{
 			name: "user-store",
 			storage: createJSONStorage(() => localStorage),
-			version: 1, // if we make breaking changes to store we bump version & define a migration
+			version: 2, // if we make breaking changes to store we bump version & define a migration
+			migrate: (persistedState, version) => {
+				if (version === 1) {
+					// @ts-expect-error
+					for (let i = 0; i < persistedState.tabs.length; i++) {
+						// @ts-expect-error
+						delete persistedState.tabs[i].courses;
+						// @ts-expect-error
+						persistedState.tabs[i].courseEvents = [];
+						// @ts-expect-error
+						persistedState.tabs[i].nonCourseEvents = [];
+					}
+				}
+
+				return persistedState;
+			},
 		},
 	),
 );
