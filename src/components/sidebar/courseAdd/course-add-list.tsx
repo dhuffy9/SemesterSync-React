@@ -12,6 +12,11 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+	crateSwipeLeftVariant,
+	createSwipeRightVariant,
+	TRANSITION,
+} from "@/lib/animation";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type {
@@ -21,24 +26,6 @@ import type {
 	Meeting,
 	Section,
 } from "@/types/courses";
-
-const createCourseVariants = (shouldReduceMotion: boolean | null) => ({
-	initial: shouldReduceMotion
-		? { opacity: 1, x: 0 }
-		: { opacity: 0, x: "-100%" },
-	animate: { opacity: 1, x: 0 },
-	exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "-100%" },
-});
-
-const createSectionVariants = (shouldReduceMotion: boolean | null) => ({
-	initial: shouldReduceMotion
-		? { opacity: 1, x: 0 }
-		: { opacity: 0, x: "100%" },
-	animate: { opacity: 1, x: 0 },
-	exit: shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" },
-});
-
-const TRANSITION = { duration: 0.2, type: "spring" as const, bounce: 0.1 };
 
 export default function CourseAddList({
 	courses,
@@ -56,8 +43,8 @@ export default function CourseAddList({
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 
 	const shouldReduceMotion = useReducedMotion();
-	const courseVariants = createCourseVariants(shouldReduceMotion);
-	const sectionVariants = createSectionVariants(shouldReduceMotion);
+	const swipeLeftVariant = crateSwipeLeftVariant(shouldReduceMotion);
+	const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [filteredCourses, setFilteredCourses] = useState<
@@ -149,7 +136,7 @@ export default function CourseAddList({
 							initial="initial"
 							exit="exit"
 							key="search"
-							variants={courseVariants}
+							variants={swipeLeftVariant}
 							transition={TRANSITION}
 						>
 							<Input
@@ -168,7 +155,7 @@ export default function CourseAddList({
 							initial="initial"
 							exit="exit"
 							key="back"
-							variants={sectionVariants}
+							variants={swipeRightVariant}
 							transition={TRANSITION}
 							whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
 						>
@@ -211,7 +198,7 @@ export default function CourseAddList({
 							initial="initial"
 							exit="exit"
 							key="courses"
-							variants={courseVariants}
+							variants={swipeLeftVariant}
 							transition={TRANSITION}
 						>
 							{virtualItems.map((vItem) => {
@@ -276,7 +263,7 @@ export default function CourseAddList({
 							initial="initial"
 							exit="exit"
 							key="sections"
-							variants={sectionVariants}
+							variants={swipeRightVariant}
 							transition={TRANSITION}
 						>
 							{coursesByTerm
