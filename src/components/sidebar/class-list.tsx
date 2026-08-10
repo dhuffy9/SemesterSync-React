@@ -97,12 +97,12 @@ function ClassCard({ data }: { data: ClassCardData }) {
 				{data.meetings.map((meeting) => (
 					<div
 						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
-						className="flex flex-row items-center gap-1"
+						className="flex flex-row items-center gap-1 text-sm"
 					>
 						<p>{meeting.days}:</p>
 						<p>
 							{meeting.startTime.toLocaleTimeString("en-US", {
-								hour12: false,
+								hour12: true,
 								hour: "2-digit",
 								minute: "2-digit",
 							})}
@@ -110,7 +110,7 @@ function ClassCard({ data }: { data: ClassCardData }) {
 						<span className="text-muted-foreground">to</span>
 						<p>
 							{meeting.endTime.toLocaleTimeString("en-US", {
-								hour12: false,
+								hour12: true,
 								hour: "2-digit",
 								minute: "2-digit",
 							})}
