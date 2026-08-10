@@ -6,6 +6,11 @@ export const instructorSchema = z.object({
 	last_name: z.string(),
 });
 
+export const instructorAddSchema = z.object({
+	firstName: z.string().min(1, "First name is required"),
+	lastName: z.string().min(1, "Last name is required"),
+});
+
 export const roomSchema = z.object({
 	id: z.number().optional(),
 	name: z.string().optional(),
@@ -28,6 +33,20 @@ export const meetingSchema = z.object({
 	instructors: z.array(instructorSchema),
 });
 
+export type Meeting = z.infer<typeof meetingSchema>;
+
+export const meetingAddSchema = z.object({
+	days: z.array(z.string()),
+	startTime: z.string().min(1, "Start time is required"),
+	endTime: z.string().min(1, "End time is required"),
+	campus: z.string(),
+	building: z.string(),
+	room: z.string("Room is required"),
+	instructors: z.array(instructorAddSchema),
+});
+
+export type MeetingAddType = z.infer<typeof meetingAddSchema>;
+
 export const sectionSchema = z.object({
 	section_id: z.number(),
 	section_code: z.string(),
@@ -41,6 +60,16 @@ export const sectionSchema = z.object({
 	meetings: z.array(meetingSchema),
 });
 
+export const sectionAddSchema = z.object({
+	sectionCode: z.string().min(1, "Section code is required"),
+	startDate: z.date(),
+	endDate: z.date(),
+	deliveryMethod: z.string().min(1, "Delivery method is required"),
+	meetings: z
+		.array(meetingAddSchema)
+		.min(1, "At least one meeting is required"),
+});
+
 export const assembledCourseSchema = z.object({
 	eventId: z.uuidv4(),
 	color: z.string().regex(/^#[0-9a-f]{6}$/i),
@@ -51,6 +80,15 @@ export const assembledCourseSchema = z.object({
 	term_code: z.string(),
 	term_name: z.string(),
 	sections: z.array(sectionSchema),
+});
+
+export const courseAddSchema = z.object({
+	color: z.string().regex(/^#[0-9a-f]{6}$/i),
+	courseCode: z.string().min(1, "Course code is required"),
+	courseTitle: z.string().min(1, "Course title is required"),
+	credits: z.string().min(1, "Credits is required"),
+	termCode: z.string().min(1, "Term code is required"),
+	section: sectionAddSchema,
 });
 
 export const assembledCourseSingleSectionSchema = assembledCourseSchema

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import type { TermResponse } from "@/data/terms";
 import { crateSwipeLeftVariant, TRANSITION } from "@/lib/animation";
 import type { CourseResponse } from "@/types/courses";
+import CourseAddManual from "./course-add-manual";
 import CourseAddQuick from "./course-add-quick";
 
 const selectOptions = [
@@ -46,6 +47,7 @@ export default function EventAddModalClient({
 	courses: CourseResponse;
 }) {
 	const [selectedOption, setSelectedOption] = useState("none");
+	const [modalContentShown, setModalContentShown] = useState(false);
 
 	const shouldReduceMotion = useReducedMotion();
 	const swipeLeftVariant = crateSwipeLeftVariant(shouldReduceMotion);
@@ -55,7 +57,7 @@ export default function EventAddModalClient({
 			<AlertDialogTrigger render={<Button />}>
 				<PlusIcon /> Add Event
 			</AlertDialogTrigger>
-			<AlertDialogContent>
+			<AlertDialogContent className={`${modalContentShown && "hidden"}`}>
 				<AlertDialogHeader className="flex flex-row items-center gap-2 justify-between">
 					<AlertDialogTitle className="pt-1">Add Event</AlertDialogTitle>
 					<AlertDialogCancel size={"icon-sm"} variant={"ghost"}>
@@ -98,6 +100,15 @@ export default function EventAddModalClient({
 							<CourseAddQuick
 								courses={courses}
 								setSelectedOption={setSelectedOption}
+							/>
+						)}
+
+						{selectedOption === "manual" && (
+							<CourseAddManual
+								terms={termsRes}
+								courses={courses}
+								setSelectedOption={setSelectedOption}
+								closeParentModal={setModalContentShown}
 							/>
 						)}
 					</AnimatePresence>
