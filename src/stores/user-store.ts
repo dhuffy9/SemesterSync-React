@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type {
 	CourseEvent,
+	NonCourseEvent,
 	Tab,
 	UserState,
 	UserStore,
@@ -72,10 +73,15 @@ const useUserStore = create<UserStore>()(
 						tab.id === id
 							? {
 									...tab, // update credits by looping through all courses and adding up credits
-									totalCredits: tab.courseEvents.reduce(
-										(acc, course) => acc + parseFloat(course.credits),
-										0, // start accumulator at 0
-									),
+									totalCredits:
+										tab.courseEvents.reduce(
+											(acc, course) => acc + parseFloat(course.credits),
+											0, // start accumulator at 0
+										) +
+										tab.nonCourseEvents.reduce(
+											(acc, event) => acc + parseFloat(event.credits || "0"),
+											0,
+										),
 								}
 							: tab,
 					),
@@ -120,7 +126,43 @@ const useUserStore = create<UserStore>()(
 				// re-calc the total credits
 				get().recalculateTabCredits(tabId);
 			},
-			removeCourseEvent: (tabId: string, eventId: string) => {
+
+			addNonCourseEvent: (tabId: string, event: NonCourseEvent) => {
+				set({
+					// loop through all tabs, find with matching id
+					tabs: get().tabs.map((tab) =>
+						tab.id === tabId
+							? {
+									...tab, // spread existing courses & add new course passed to func
+									nonCourseEvents: [...tab.nonCourseEvents, event],
+								}
+							: tab,
+					),
+				});
+
+				// re-calc the total credits
+				get().recalculateTabCredits(tabId);
+			},
+			updateNonCourseEvent: (tabId: string, event: NonCourseEvent) => {
+				set({
+					// loop through all tabs, find with matching id
+					tabs: get().tabs.map((tab) =>
+						tab.id === tabId
+							? {
+									...tab, // loop through all course & replace the one with matching id
+									nonCourseEvents: tab.nonCourseEvents.map((c) =>
+										c.eventId === event.eventId ? event : c,
+									),
+								}
+							: tab,
+					),
+				});
+
+				// re-calc the total credits
+				get().recalculateTabCredits(tabId);
+			},
+
+			removeEvent: (tabId: string, eventId: string) => {
 				set({
 					// loop through all tabs, find with matching id
 					tabs: get().tabs.map((tab) =>
@@ -128,6 +170,9 @@ const useUserStore = create<UserStore>()(
 							? {
 									...tab, // loop through all courses & remove the one with matching id
 									courseEvents: tab.courseEvents.filter(
+										(c) => c.eventId !== eventId,
+									),
+									nonCourseEvents: tab.nonCourseEvents.filter(
 										(c) => c.eventId !== eventId,
 									),
 								}

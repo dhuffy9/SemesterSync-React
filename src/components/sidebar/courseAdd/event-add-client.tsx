@@ -17,6 +17,7 @@ import { crateSwipeLeftVariant, TRANSITION } from "@/lib/animation";
 import type { CourseResponse } from "@/types/courses";
 import CourseAddManual from "./course-add-manual";
 import CourseAddQuick from "./course-add-quick";
+import EventAddManual from "./event-add-manual";
 
 const selectOptions = [
 	{
@@ -107,6 +108,14 @@ export default function EventAddModalClient({
 							<CourseAddManual
 								terms={termsRes}
 								courses={courses}
+								setSelectedOption={setSelectedOption}
+								closeParentModal={setModalContentShown}
+							/>
+						)}
+
+						{selectedOption === "event" && (
+							<EventAddManual
+								terms={termsRes}
 								setSelectedOption={setSelectedOption}
 								closeParentModal={setModalContentShown}
 							/>
