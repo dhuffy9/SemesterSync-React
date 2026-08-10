@@ -1,4 +1,5 @@
-/** biome-ignore-all lint/correctness/noChildrenProp: <explanation> */
+/** biome-ignore-all lint/correctness/noChildrenProp: This is required of the tanstack form */
+
 "use client";
 import { useForm } from "@tanstack/react-form";
 import clsx from "clsx";
