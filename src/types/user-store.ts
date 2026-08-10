@@ -40,6 +40,7 @@ export interface UserActions {
 	addTab: () => void;
 	setActiveTab: (id: string) => void;
 	getActiveTab: () => Tab;
+	getActiveTabCredits: () => number;
 	updateTabName: (id: string, name: string) => void;
 	updateTabDate: (id: string, date: Date) => void;
 	recalculateTabCredits: (id: string) => void;

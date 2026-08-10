@@ -52,6 +52,8 @@ const useUserStore = create<UserStore>()(
 			getActiveTab: () =>
 				// filter tabs by id and return the found tab
 				get().tabs.filter((tab) => tab.id === get().activeTab)[0],
+			getActiveTabCredits: () =>
+				get().tabs.find((tab) => tab.id === get().activeTab)?.totalCredits || 0,
 			updateTabName: (id: string, name: string) =>
 				set({
 					// Map through all tabs and update tab with matching id, otherwise keep tab as is
