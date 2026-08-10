@@ -1,7 +1,9 @@
 "use client";
 
+import clsx from "clsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 
 export default function ClassList() {
@@ -22,7 +24,15 @@ export default function ClassList() {
 				<div className="flex flex-row gap-2 justify-center py-2 items-center">
 					<p className="text-sm text-muted-foreground">
 						Credits:{" "}
-						<span className="font-bold text-foreground">{credits}</span>
+						<span
+							className={cn(
+								clsx("font-bold text-foreground", {
+									"text-destructive": credits > 18,
+								}),
+							)}
+						>
+							{credits}
+						</span>
 					</p>
 					<Separator orientation="vertical" className="h-6" />
 					<p className="text-sm text-muted-foreground">
