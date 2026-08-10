@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import useUserStore from "@/stores/user-store";
 
 export default function ClassList() {
-	const getTabEvents = useUserStore((state) => state.getActiveTabEvents);
+	const tab = useUserStore((state) =>
+		state.tabs.find((tab) => tab.id === state.activeTab),
+	);
+	const tabEvents = [
+		...(tab?.courseEvents || []),
+		...(tab?.nonCourseEvents || []),
+	];
 	const credits = useUserStore((state) => state.getActiveTabCredits());
-
-	const tabEvents = useMemo(() => getTabEvents(), [getTabEvents]);
 
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">

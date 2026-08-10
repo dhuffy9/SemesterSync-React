@@ -41,7 +41,6 @@ export interface UserActions {
 	setActiveTab: (id: string) => void;
 	getActiveTab: () => Tab;
 	getActiveTabCredits: () => number;
-	getActiveTabEvents: () => Array<CourseEvent | NonCourseEvent>;
 	updateTabName: (id: string, name: string) => void;
 	updateTabDate: (id: string, date: Date) => void;
 	recalculateTabCredits: (id: string) => void;
