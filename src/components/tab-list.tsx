@@ -181,8 +181,9 @@ export default function TabList() {
 													<AlertDialogDescription>
 														You are about to delete <b>{tab.name}</b> with{" "}
 														<b>
-															{tab.courses.length} course
-															{tab.courses.length === 1 && "s"}
+															{tab.courseEvents.length}
+															course
+															{tab.courseEvents.length === 1 && "s"}
 														</b>
 														.
 													</AlertDialogDescription>
@@ -222,8 +223,8 @@ export default function TabList() {
 								<ContextMenuGroup>
 									<ContextMenuLabel>Courses</ContextMenuLabel>
 									<ContextMenuItem disabled>
-										{tab.courses.length} course
-										{tab.courses.length === 1 ? "" : "s"}
+										{tab.courseEvents.length} course
+										{tab.courseEvents.length === 1 ? "" : "s"}
 									</ContextMenuItem>
 									<ContextMenuItem disabled>
 										{tab.totalCredits} credit

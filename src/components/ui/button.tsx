@@ -2,7 +2,7 @@
 
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
-
+import { useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -50,10 +50,18 @@ function Button({
 	size = "default",
 	...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+	const shouldReduceMotion = useReducedMotion();
+
 	return (
 		<ButtonPrimitive
 			data-slot="button"
-			className={cn(buttonVariants({ variant, size, className }))}
+			className={cn(
+				buttonVariants({
+					variant,
+					size,
+					className: `${!shouldReduceMotion ? "active:scale-[0.95]" : ""} ${className}`,
+				}),
+			)}
 			{...props}
 		/>
 	);

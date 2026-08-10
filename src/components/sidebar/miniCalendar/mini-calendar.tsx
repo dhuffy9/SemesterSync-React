@@ -9,8 +9,7 @@ export default function MiniCalendar() {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const updataTabData = useUserStore((state) => state.updateTabDate);
 
-	const [selectedDay, setSelectedDay] =  useState<number | null>(null)
-
+	const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
 	const monthNames = [
 		"January",
@@ -33,25 +32,29 @@ export default function MiniCalendar() {
 
 	const changeMonth = (direction: number) => {
 		const nextDate = new Date(selectedDate);
-		nextDate.setMonth(nextDate.getMonth() + direction, selectedDate.getDay())
+		nextDate.setMonth(nextDate.getMonth() + direction, selectedDate.getDay());
 		updataTabData(activeTab.id, nextDate);
-	}
+	};
 
-	const getDaysInMonth = (year: number, month: number) =>{
+	const getDaysInMonth = (year: number, month: number) => {
 		return new Date(year, month + 1, 0).getDate(); // months start at 0
-	}
+	};
 
-	const getFirstDayOfMonth = (year: number, month: number) =>{
+	const getFirstDayOfMonth = (year: number, month: number) => {
 		return new Date(year, month, 1).getDay();
-	}
+	};
 
-	const goToDay = (day : number) => {
+	const goToDay = (day: number) => {
 		setSelectedDay(day);
-		updataTabData(activeTab.id, new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day));
-	}
+		updataTabData(
+			activeTab.id,
+			new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day),
+		);
+	};
 
-
-	const selectedDate = activeTab.selectedDate ? new Date(activeTab.selectedDate) : new Date();
+	const selectedDate = activeTab.selectedDate
+		? new Date(activeTab.selectedDate)
+		: new Date();
 
 	const year = selectedDate.getFullYear();
 	const month = selectedDate.getMonth();
@@ -97,14 +100,13 @@ export default function MiniCalendar() {
 			</div>
 			<div className="grid grid-cols-7  text-center">
 				{calendarDays.map((day, index) => {
-
 					const isSelected =
 						day === today.getDate() &&
 						month === today.getMonth() &&
 						year === today.getFullYear();
 
-					if(day == null){
-						return (<span key={`${index}_${day}`}></span>)
+					if (day == null) {
+						return <span key={`${index}_${day}`}></span>;
 					}
 
 					return (
@@ -112,9 +114,7 @@ export default function MiniCalendar() {
 							key={`${index}_${day}`}
 							variant={isSelected ? "default" : "ghost"}
 							size={"lg"}
-							className={`${selectedDay === day? "border-dashed border-primary" : "" }rounded-full font-normal`}
-
-
+							className={`${selectedDay === day ? "border-dashed border-primary" : ""}rounded-full font-normal`}
 							onClick={() => goToDay(day)}
 						>
 							{day}
