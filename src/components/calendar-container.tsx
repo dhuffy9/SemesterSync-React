@@ -17,13 +17,13 @@ export default function ClassList() {
 	};
 
 	const days = [
-		"Sunday",
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
+		{ long: "Sunday", short: "Sun" },
+		{ long: "Monday", short: "Mon" },
+		{ long: "Tuesday", short: "Tue" },
+		{ long: "Wednesday", short: "Wed" },
+		{ long: "Thursday", short: "Thu" },
+		{ long: "Friday", short: "Fri" },
+		{ long: "Saturday", short: "Sat" },
 	];
 
 	const today = new Date();
@@ -41,7 +41,7 @@ export default function ClassList() {
 		<div
 			className="grid grid-cols-[5rem_repeat(7,minmax(0,1fr))] w-full mb-4"
 			style={{
-				gridTemplateRows: `6.25rem repeat(${rows},minmax(0, 1.25rem))`,
+				gridTemplateRows: `3.25rem repeat(${rows},minmax(0, 1.25rem))`,
 			}}
 		>
 			{/* Time sidebar */}
@@ -76,23 +76,20 @@ export default function ClassList() {
 						currentDate.getDate() === today.getDate() &&
 						currentDate.getMonth() === today.getMonth() &&
 						currentDate.getFullYear() === today.getFullYear();
+
 					return (
 						<div
-							key={day}
+							key={day.long}
 							className={clsx(
-								"flex flex-col justify-center items-center border-r",
+								"flex justify-center items-center border-r text-sm gap-2",
 								{ "text-primary": isToday },
 							)}
 						>
-							<span className="text-muted-foreground">{day}</span>
-							<span
-								className={clsx("", {
-									"bg-primary rounded-full size-6 text-center text-primary-foreground":
-										isToday,
-								})}
-							>
-								{dataNumber}
+							<span className={!isToday ? "text-muted-foreground" : ""}>
+								{day.short}
 							</span>
+
+							{dataNumber}
 						</div>
 					);
 				})}
