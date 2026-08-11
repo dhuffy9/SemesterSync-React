@@ -1,41 +1,40 @@
 "use client";
 
 import clsx from "clsx";
+import { Fragment } from "react/jsx-runtime";
 import useUserStore from "@/stores/user-store";
 
+const startHour = 6; // Inclusive, 6 AM
+const endHour = 23; // Exclusive, 11 PM (up until 22:59)
+
+const slots = 12; // 5 min per slot
+const cols = 7;
+const rows = (endHour - startHour) * slots;
+// ^ total hours * number of slots per hour to get total slots across all hours
+
+const days = [
+	{ long: "Sunday", short: "Sun" },
+	{ long: "Monday", short: "Mon" },
+	{ long: "Tuesday", short: "Tue" },
+	{ long: "Wednesday", short: "Wed" },
+	{ long: "Thursday", short: "Thu" },
+	{ long: "Friday", short: "Fri" },
+	{ long: "Saturday", short: "Sat" },
+];
+
 export default function ClassList() {
-	const cols = 7;
-	const rows = 85;
-
-	const start = 6; // 6 AM
-	const end = 22; // 10 PM
-
-	const formatHour = (hour: number) => {
-		const period = hour >= 12 ? "PM" : "AM";
-		const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-		return `${displayHour}:00 ${period}`;
-	};
-
-	const days = [
-		{ long: "Sunday", short: "Sun" },
-		{ long: "Monday", short: "Mon" },
-		{ long: "Tuesday", short: "Tue" },
-		{ long: "Wednesday", short: "Wed" },
-		{ long: "Thursday", short: "Thu" },
-		{ long: "Friday", short: "Fri" },
-		{ long: "Saturday", short: "Sat" },
-	];
-
-	const today = new Date();
-
 	const activeTab = useUserStore((state) => state.getActiveTab());
 
+	const today = new Date();
 	const selectedDate = activeTab.selectedDate
 		? new Date(activeTab.selectedDate)
 		: new Date();
 
 	const firstWeek = new Date(selectedDate);
-	firstWeek.setDate(selectedDate.getDate() - selectedDate.getDay()); // 6(1-31) - 1 (0-6)
+	firstWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+	// ^ sets day of month to the "selected day of month - # days from Sunday"
+
+	console.log({ today, selectedDate, firstWeek });
 
 	return (
 		<div
@@ -47,19 +46,33 @@ export default function ClassList() {
 		>
 			{/* Time sidebar */}
 			<div className="row-start-2 row-span-full grid grid-rows-subgrid border-r">
-				{Array.from({ length: end - start + 1 }).map((_, i) => {
-					const hour = start + i;
+				{Array.from({ length: endHour - startHour }).map((_, i) => {
+					const hour = startHour + i;
+					const hourPair = formatHourPair(hour);
 
 					return (
-						<div
-							key={hour}
-							className={clsx(
-								"row-span-5 text-xs text-muted-foreground text-center",
-								{ "border-t": i > 0 }, // skip border on first row
-							)}
-						>
-							{formatHour(hour)}
-						</div>
+						<Fragment key={hour}>
+							<div
+								className={clsx(
+									"text-xs text-muted-foreground text-center",
+									{ "border-t": i > 0 }, // skip border on first row
+								)}
+								style={{
+									gridRow: `span ${slots / 2} / span ${slots / 2}`,
+								}}
+							>
+								{hourPair.onHour}
+							</div>
+
+							<div
+								className="text-xs text-muted-foreground text-center border-t"
+								style={{
+									gridRow: `span ${slots / 2} / span ${slots / 2}`,
+								}}
+							>
+								{hourPair.onHalf}
+							</div>
+						</Fragment>
 					);
 				})}
 			</div>
@@ -98,20 +111,37 @@ export default function ClassList() {
 
 			{/* Inner Grid Borders */}
 			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid">
-				{Array.from({ length: (end - start + 1) * cols }).map((_, i) => {
-					const col = i % cols;
-					const row = Math.floor(i / cols);
+				{Array.from({ length: (endHour - startHour) * cols * 2 }).map(
+					(_, i) => {
+						const col = i % cols;
+						const row = Math.floor(i / cols);
 
-					return (
-						<span
-							key={`${col}-${row}`}
-							className={clsx("row-span-5 border-r", {
-								"border-t": row > 0, // skip top border so no double
-							})}
-						></span>
-					);
-				})}
+						return (
+							<span
+								key={`${col}-${row}`}
+								className={clsx("border-r", {
+									"border-t": row > 0, // skip top border so no double
+								})}
+								style={{
+									gridRow: `span ${slots / 2} / span ${slots / 2}`,
+								}}
+							></span>
+						);
+					},
+				)}
 			</div>
+
+			{/* Event Grid */}
+			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid"></div>
 		</div>
 	);
+}
+
+function formatHourPair(hour: number) {
+	const period = hour >= 12 ? "PM" : "AM";
+	const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+	return {
+		onHour: `${displayHour}:00 ${period}`,
+		onHalf: `${displayHour}:30 ${period}`,
+	};
 }
