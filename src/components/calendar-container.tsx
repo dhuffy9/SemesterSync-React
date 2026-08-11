@@ -98,6 +98,7 @@ export default function ClassList() {
 				})}
 			</div>
 
+			{/* Inner Grid Borders */}
 			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid">
 				{Array.from({ length: (end - start + 1) * cols }).map((_, i) => {
 					const col = i % cols;
