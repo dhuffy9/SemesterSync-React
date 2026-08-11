@@ -39,8 +39,9 @@ export default function ClassList() {
 
 	return (
 		<div
-			className="grid grid-cols-[5rem_repeat(7,minmax(0,1fr))] w-full mb-4"
+			className="grid w-full max-w-full mb-4"
 			style={{
+				gridTemplateColumns: `5rem repeat(${cols},minmax(0, 1fr))`,
 				gridTemplateRows: `3.25rem repeat(${rows},minmax(0, 1.25rem))`,
 			}}
 		>
