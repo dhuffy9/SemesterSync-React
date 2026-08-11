@@ -34,8 +34,6 @@ export default function ClassList() {
 	firstWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 	// ^ sets day of month to the "selected day of month - # days from Sunday"
 
-	console.log({ today, selectedDate, firstWeek });
-
 	return (
 		<div
 			className="grid w-full max-w-full mb-4"
