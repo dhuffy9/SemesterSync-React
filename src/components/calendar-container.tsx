@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import useUserStore from "@/stores/user-store";
 
 export default function ClassList() {
@@ -37,62 +38,80 @@ export default function ClassList() {
 	firstWeek.setDate(selectedDate.getDate() - selectedDate.getDay()); // 6(1-31) - 1 (0-6)
 
 	return (
-		<div className="flex flex-row w-full max-w-full overflow-x-hidden pb-4">
-			<div className="w-[80px]">
-				<div className="h-[100px] border-b"></div>
+		<div
+			className="grid grid-cols-[5rem_repeat(7,minmax(0,1fr))] w-full mb-4"
+			style={{
+				gridTemplateRows: `6.25rem repeat(${rows},minmax(0, 1.25rem))`,
+			}}
+		>
+			{/* Time sidebar */}
+			<div className="row-start-2 row-span-full grid grid-rows-subgrid border-r">
 				{Array.from({ length: end - start + 1 }).map((_, i) => {
 					const hour = start + i;
 
 					return (
 						<div
 							key={hour}
-							className="h-25 flex justify-center text-xs text-muted-foreground"
+							className={clsx(
+								"row-span-5 text-xs text-muted-foreground text-center",
+								{ "border-t": i > 0 }, // skip border on first row
+							)}
 						>
 							{formatHour(hour)}
 						</div>
 					);
 				})}
 			</div>
-			<div className="flex flex-col flex-1">
-				<div className="w-full h-[100px] grid grid-cols-7 border-b">
-					{days.map((day, i) => {
-						const currentDate = new Date(firstWeek);
-						currentDate.setDate(firstWeek.getDate() + i);
 
-						const dataNumber = currentDate.getDate();
+			{/* Day Header Bar */}
+			<div className="col-span-full grid grid-cols-subgrid border-b bg-background sticky top-0">
+				<span id="empty-day-spacer" className="border-r"></span>
+				{days.map((day, i) => {
+					const currentDate = new Date(firstWeek);
+					currentDate.setDate(firstWeek.getDate() + i);
 
-						const isToday =
-							currentDate.getDate() === today.getDate() &&
-							currentDate.getMonth() === today.getMonth() &&
-							currentDate.getFullYear() === today.getFullYear();
-						return (
-							<div
-								key={day}
-								className={`${isToday ? "text-primary" : ""} flex flex-col justify-center items-center border-r`}
+					const dataNumber = currentDate.getDate();
+
+					const isToday =
+						currentDate.getDate() === today.getDate() &&
+						currentDate.getMonth() === today.getMonth() &&
+						currentDate.getFullYear() === today.getFullYear();
+					return (
+						<div
+							key={day}
+							className={clsx(
+								"flex flex-col justify-center items-center border-r",
+								{ "text-primary": isToday },
+							)}
+						>
+							<span className="text-muted-foreground">{day}</span>
+							<span
+								className={clsx("", {
+									"bg-primary rounded-full size-6 text-center text-primary-foreground":
+										isToday,
+								})}
 							>
-								<span className="text-muted-foreground">{day}</span>
-								<span
-									className={`${isToday ? "bg-primary rounded-full px-2 text-primary-foreground" : ""}`}
-								>
-									{dataNumber}
-								</span>
-							</div>
-						);
-					})}
-				</div>
-				<div className="grid grid-cols-7 w-full overflow-x-hidden">
-					{Array.from({ length: rows * cols }).map((_, i) => {
-						const col = i % cols;
-						const row = Math.floor(i / cols);
+								{dataNumber}
+							</span>
+						</div>
+					);
+				})}
+			</div>
 
-						return (
-							<div
-								key={`${col}-${row}`}
-								className={`${row % 5 === 0 && row !== 0 ? "border-t" : ""} border-x h-5 text-xs flex items-center justify-center`}
-							></div>
-						);
-					})}
-				</div>
+			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid">
+				{Array.from({ length: (end - start + 1) * cols }).map((_, i) => {
+					const col = i % cols;
+					const row = Math.floor(i / cols);
+
+					return (
+						<span
+							key={`${col}-${row}`}
+							className={clsx("row-span-5 border-r", {
+								"border-t": row > 0, // skip top border so no double
+							})}
+						></span>
+					);
+				})}
 			</div>
 		</div>
 	);
