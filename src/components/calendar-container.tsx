@@ -2,8 +2,9 @@
 
 import clsx from "clsx";
 import { Fragment } from "react/jsx-runtime";
+import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
-import type { EventCardGenerics, EventCardsObjectType } from "@/types/events";
+import type { EventCard, EventCardsObjectType } from "@/types/events";
 import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
 import {
 	ContextMenu,
@@ -12,6 +13,7 @@ import {
 	ContextMenuTrigger,
 } from "./ui/context-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { Separator } from "./ui/separator";
 
 const startHour = 6; // Inclusive, 6 AM
 const endHour = 23; // Exclusive, 11 PM (up until 22:59)
@@ -164,7 +166,7 @@ export default function ClassList() {
 												<ContextMenuTrigger
 													render={
 														<div
-															className="border-l-2 rounded-sm"
+															className="border-l-2 rounded-sm p-2 wrap-break-word"
 															style={{
 																gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
 																backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
@@ -175,10 +177,102 @@ export default function ClassList() {
 												/>
 											}
 										>
-											{event.eventId}
+											<div className="flex flex-col gap-2">
+												<p>{event.title}</p>
+												<p
+													className={clsx("text-sm", {
+														"italic text-muted-foreground":
+															event.description.length === 0,
+													})}
+												>
+													{event.description.length === 0
+														? "No Description"
+														: event.description}
+												</p>
+
+												<Separator className="bg-black/20" />
+
+												<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
+													<span className="text-foreground">
+														{event.startTime.toLocaleTimeString("en-US", {
+															hour12: true,
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+													</span>
+													to
+													<span className="text-foreground">
+														{event.endTime.toLocaleTimeString("en-US", {
+															hour12: true,
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+													</span>
+												</div>
+											</div>
 										</HoverCardTrigger>
-										<HoverCardContent>
-											<p>{event.eventId}</p>
+										<HoverCardContent
+											side="right"
+											className="flex flex-col gap-2"
+										>
+											{event.isCourse ? (
+												<>
+													<p>
+														<PrimaryText>Course: </PrimaryText>
+														{event.title}
+													</p>
+													<p>
+														<PrimaryText>Credits: </PrimaryText>
+														{event.credits}
+													</p>
+													{event.seatsAvailable === -1 &&
+													event.seatsTotal === -1 ? (
+														<p>
+															<PrimaryText>Seats: </PrimaryText>{" "}
+															<span className="italic text-muted-foreground">
+																information not available
+															</span>
+														</p>
+													) : (
+														<p>
+															<PrimaryText>Seats: </PrimaryText>
+															{event.seatsAvailable}/{event.seatsTotal}
+														</p>
+													)}
+													<p>
+														<PrimaryText>Section: </PrimaryText>
+														{event.sectionCode}
+													</p>
+													<p>
+														<PrimaryText>Campus: </PrimaryText>
+														{event.campus}
+													</p>
+													<p>
+														<PrimaryText>Building: </PrimaryText>
+														{event.building.long}
+													</p>
+													<p>
+														<PrimaryText>Room: </PrimaryText>
+														{event.room}
+													</p>
+													<Separator className="bg-black/20" />
+													<p>
+														<PrimaryText>Instructors: </PrimaryText>
+														{event.instructors.map((instructor) => (
+															<Fragment
+																key={`${instructor.firstName}-${instructor.lastName}`}
+															>
+																{instructor.firstName} {instructor.lastName}
+															</Fragment>
+														))}
+													</p>
+												</>
+											) : (
+												<p>
+													<PrimaryText>Location: </PrimaryText>
+													{event.location}
+												</p>
+											)}
 										</HoverCardContent>
 										<ContextMenuContent>
 											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
@@ -240,7 +334,24 @@ function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
 					cardDayOffset: determinedDayOffset,
 					cardSpanHeight: determineCardSpanHeight(startTime, endTime),
 					color: event.color,
-				} as EventCardGenerics;
+
+					title: `${event.course_code}-${event.section.section_code}`,
+					description: `${event.course_title}`,
+					isCourse: true,
+					credits: parseFloat(event.credits),
+					seatsAvailable: event.section.seats_available,
+					seatsTotal: event.section.seats_total,
+					sectionCode: event.section.section_code,
+					campus: meeting.campus,
+					building: {
+						long: meeting.building.long,
+						short: meeting.building.short,
+					},
+					room: meeting.room.name || "",
+					instructors: meeting.instructors.map((i) => {
+						return { firstName: i.first_name, lastName: i.last_name };
+					}),
+				} as EventCard;
 
 				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
 			});
@@ -265,7 +376,13 @@ function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
 					cardDayOffset: determinedDayOffset,
 					cardSpanHeight: determineCardSpanHeight(startTime, endTime),
 					color: event.color,
-				} as EventCardGenerics;
+
+					title: event.title,
+					description: event.description || "",
+					isCourse: false,
+					credits: event.credits,
+					location: meeting.location || "",
+				} as EventCard;
 
 				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
 			});
@@ -359,4 +476,14 @@ function determineCardDay(day: string) {
 			return "saturday";
 	}
 	return "sunday";
+}
+
+function PrimaryText({
+	children,
+	className,
+}: {
+	children: React.ReactNode;
+	className?: string;
+}) {
+	return <span className={cn("text-primary", className)}>{children}</span>;
 }

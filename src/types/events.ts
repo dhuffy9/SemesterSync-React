@@ -1,4 +1,27 @@
-type TransformedCourseEvent = {};
+export type TransformedCourseEvent = {
+	isCourse: true;
+	credits: number;
+	seatsAvailable: number;
+	seatsTotal: number;
+	sectionCode: string;
+	campus: string;
+	building: {
+		long: string;
+		short: string;
+	};
+	room: string;
+	instructors: Array<{
+		firstName: string;
+		lastName: string;
+	}>;
+};
+
+export type TransformedNonCourseEvent = {
+	isCourse: false;
+
+	credits?: number;
+	location: string;
+};
 
 export type EventCardGenerics = {
 	eventId: string;
@@ -10,7 +33,13 @@ export type EventCardGenerics = {
 	cardDayOffset: number;
 	cardSpanHeight: number;
 	color: string;
+
+	title: string;
+	description: string;
 };
+
+export type EventCard = EventCardGenerics &
+	(TransformedCourseEvent | TransformedNonCourseEvent);
 
 export type EventCardsObjectType = Record<
 	| "sunday"
@@ -20,5 +49,5 @@ export type EventCardsObjectType = Record<
 	| "thursday"
 	| "friday"
 	| "saturday",
-	Array<EventCardGenerics>
+	Array<EventCard>
 >;
