@@ -3,11 +3,14 @@
 import clsx from "clsx";
 import { Fragment } from "react/jsx-runtime";
 import useUserStore from "@/stores/user-store";
+import type { EventCardGenerics, EventCardsObjectType } from "@/types/events";
+import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
 
 const startHour = 6; // Inclusive, 6 AM
 const endHour = 23; // Exclusive, 11 PM (up until 22:59)
 
 const slots = 12; // 5 min per slot
+const minsPerSlot = 60 / slots;
 const cols = 7;
 const rows = (endHour - startHour) * slots;
 // ^ total hours * number of slots per hour to get total slots across all hours
@@ -24,14 +27,21 @@ const days = [
 
 export default function ClassList() {
 	const activeTab = useUserStore((state) => state.getActiveTab());
+	const unstructuredEvents = [
+		...(activeTab.courseEvents || []),
+		...(activeTab.nonCourseEvents || []),
+	];
+	const structuredEvents = transformEvents(unstructuredEvents);
+
+	console.log(structuredEvents);
 
 	const today = new Date();
 	const selectedDate = activeTab.selectedDate
 		? new Date(activeTab.selectedDate)
 		: new Date();
 
-	const firstWeek = new Date(selectedDate);
-	firstWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
+	const firstDayOfWeek = new Date(selectedDate);
+	firstDayOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 	// ^ sets day of month to the "selected day of month - # days from Sunday"
 
 	return (
@@ -79,8 +89,8 @@ export default function ClassList() {
 			<div className="col-span-full grid grid-cols-subgrid border-b bg-background sticky top-0">
 				<span id="empty-day-spacer" className="border-r"></span>
 				{days.map((day, i) => {
-					const currentDate = new Date(firstWeek);
-					currentDate.setDate(firstWeek.getDate() + i);
+					const currentDate = new Date(firstDayOfWeek);
+					currentDate.setDate(firstDayOfWeek.getDate() + i);
 
 					const dataNumber = currentDate.getDate();
 
@@ -130,7 +140,34 @@ export default function ClassList() {
 			</div>
 
 			{/* Event Grid */}
-			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid"></div>
+			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid">
+				{Object.keys(structuredEvents).map((key, i) =>
+					structuredEvents[key as keyof EventCardsObjectType].map((event) => {
+						const d = new Date(firstDayOfWeek);
+						d.setDate(firstDayOfWeek.getDate() + i);
+
+						console.log(event);
+
+						if (d >= event.startDate && d <= event.endDate) {
+							return (
+								<div
+									key={event.eventId}
+									className="border-l-2 rounded-sm"
+									style={{
+										gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
+										backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
+										borderColor: event.color,
+									}}
+								>
+									{event.eventId}
+								</div>
+							);
+						} else {
+							return null;
+						}
+					}),
+				)}
+			</div>
 		</div>
 	);
 }
@@ -142,4 +179,133 @@ function formatHourPair(hour: number) {
 		onHour: `${displayHour}:00 ${period}`,
 		onHalf: `${displayHour}:30 ${period}`,
 	};
+}
+
+function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
+	const transformedEvents = {
+		sunday: [],
+		monday: [],
+		tuesday: [],
+		wednesday: [],
+		thursday: [],
+		friday: [],
+		saturday: [],
+	} as EventCardsObjectType;
+
+	events.forEach((event) => {
+		if ("section" in event) {
+			event.section.meetings.forEach((meeting) => {
+				const startTime = new Date(`2026-08-11T${meeting.start_time}`);
+				const endTime = new Date(`2026-08-11T${meeting.end_time}`);
+				const determinedDayOffset = determineCardDayOffset(meeting.day);
+
+				// outside of cal boundaries
+				if (startTime.getHours() >= endHour) return;
+				if (endTime.getHours() < startHour) return;
+				if (determinedDayOffset === -1) return;
+
+				const eventGeneric = {
+					eventId: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
+					startDate: new Date(event.section.start_date),
+					endDate: new Date(event.section.end_date),
+					startTime,
+					endTime,
+					cardTimeOffset: determineCardTimeOffset(startTime),
+					cardDayOffset: determinedDayOffset,
+					cardSpanHeight: determineCardSpanHeight(startTime, endTime),
+					color: event.color,
+				} as EventCardGenerics;
+
+				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
+			});
+		}
+	});
+
+	return transformedEvents;
+}
+
+function roundMinutes(minutes: number) {
+	return Math.round(minutes / minsPerSlot) * minsPerSlot;
+	// ^ minutes rounded to nearest incr of slot (ie w/ 12 slots, mins will round to nearest multiple of 5)
+}
+
+function determineCardTimeOffset(time: Date) {
+	const timeHour = time.getHours();
+	const timeMinutes = roundMinutes(time.getMinutes());
+
+	const adjustedHour = timeHour - startHour;
+	const hourOffset = adjustedHour * slots; // top slot of hour
+
+	const minutesOffset = timeMinutes / minsPerSlot;
+
+	return hourOffset + minutesOffset + 1;
+}
+
+function determineCardSpanHeight(startTime: Date, endTime: Date) {
+	const startHour = startTime.getHours();
+	const endHour = endTime.getHours();
+	const startMinutes = roundMinutes(startTime.getMinutes());
+	const endMinutes = roundMinutes(endTime.getMinutes());
+
+	const hourSpan = (endHour - startHour) * slots;
+
+	const minutesDiff = Math.abs(endMinutes - startMinutes);
+	const minutesSpan = minutesDiff / minsPerSlot;
+
+	return hourSpan + minutesSpan;
+}
+
+function determineCardDayOffset(day: string) {
+	switch (day) {
+		case "Sunday":
+		case "sun":
+			return 1;
+		case "Monday":
+		case "mon":
+			return 2;
+		case "Tuesday":
+		case "tue":
+			return 3;
+		case "Wednesday":
+		case "wed":
+			return 4;
+		case "Thursday":
+		case "thu":
+			return 5;
+		case "Friday":
+		case "fri":
+			return 6;
+		case "Saturday":
+		case "sat":
+			return 7;
+	}
+	return -1;
+}
+
+function determineCardDay(day: string) {
+	console.log(day);
+	switch (day) {
+		case "Sunday":
+		case "sun":
+			return "sunday";
+		case "Monday":
+		case "mon":
+			return "monday";
+		case "Tuesday":
+		case "tue":
+			return "tuesday";
+		case "Wednesday":
+		case "wed":
+			return "wednesday";
+		case "Thursday":
+		case "thu":
+			return "thursday";
+		case "Friday":
+		case "fri":
+			return "friday";
+		case "Saturday":
+		case "sat":
+			return "saturday";
+	}
+	return "sunday";
 }
