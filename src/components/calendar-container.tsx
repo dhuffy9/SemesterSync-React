@@ -5,6 +5,12 @@ import { Fragment } from "react/jsx-runtime";
 import useUserStore from "@/stores/user-store";
 import type { EventCardGenerics, EventCardsObjectType } from "@/types/events";
 import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+} from "./ui/context-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 const startHour = 6; // Inclusive, 6 AM
@@ -152,23 +158,34 @@ export default function ClassList() {
 						if (d >= event.startDate && d <= event.endDate) {
 							return (
 								<HoverCard key={event.eventId}>
-									<HoverCardTrigger
-										render={
-											<div
-												className="border-l-2 rounded-sm"
-												style={{
-													gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
-													backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
-													borderColor: event.color,
-												}}
-											/>
-										}
-									>
-										{event.eventId}
-									</HoverCardTrigger>
-									<HoverCardContent>
-										<p>{event.eventId}</p>
-									</HoverCardContent>
+									<ContextMenu>
+										<HoverCardTrigger
+											render={
+												<ContextMenuTrigger
+													render={
+														<div
+															className="border-l-2 rounded-sm"
+															style={{
+																gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
+																backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
+																borderColor: event.color,
+															}}
+														/>
+													}
+												/>
+											}
+										>
+											{event.eventId}
+										</HoverCardTrigger>
+										<HoverCardContent>
+											<p>{event.eventId}</p>
+										</HoverCardContent>
+										<ContextMenuContent>
+											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
+											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
+											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
+										</ContextMenuContent>
+									</ContextMenu>
 								</HoverCard>
 							);
 						} else {
