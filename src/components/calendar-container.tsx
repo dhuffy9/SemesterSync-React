@@ -5,6 +5,7 @@ import { Fragment } from "react/jsx-runtime";
 import useUserStore from "@/stores/user-store";
 import type { EventCardGenerics, EventCardsObjectType } from "@/types/events";
 import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 const startHour = 6; // Inclusive, 6 AM
 const endHour = 23; // Exclusive, 11 PM (up until 22:59)
@@ -150,17 +151,25 @@ export default function ClassList() {
 
 						if (d >= event.startDate && d <= event.endDate) {
 							return (
-								<div
-									key={event.eventId}
-									className="border-l-2 rounded-sm"
-									style={{
-										gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
-										backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
-										borderColor: event.color,
-									}}
-								>
-									{event.eventId}
-								</div>
+								<HoverCard key={event.eventId}>
+									<HoverCardTrigger
+										render={
+											<div
+												className="border-l-2 rounded-sm"
+												style={{
+													gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
+													backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
+													borderColor: event.color,
+												}}
+											/>
+										}
+									>
+										{event.eventId}
+									</HoverCardTrigger>
+									<HoverCardContent>
+										<p>{event.eventId}</p>
+									</HoverCardContent>
+								</HoverCard>
 							);
 						} else {
 							return null;
