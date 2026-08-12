@@ -218,6 +218,31 @@ function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
 
 				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
 			});
+		} else {
+			event.meetings.forEach((meeting) => {
+				const startTime = new Date(`2026-08-11T${meeting.start_time}`);
+				const endTime = new Date(`2026-08-11T${meeting.end_time}`);
+				const determinedDayOffset = determineCardDayOffset(meeting.day);
+
+				// outside of cal boundaries
+				if (startTime.getHours() >= endHour) return;
+				if (endTime.getHours() < startHour) return;
+				if (determinedDayOffset === -1) return;
+
+				const eventGeneric = {
+					eventId: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
+					startDate: new Date(event.startDate),
+					endDate: new Date(event.endDate),
+					startTime,
+					endTime,
+					cardTimeOffset: determineCardTimeOffset(startTime),
+					cardDayOffset: determinedDayOffset,
+					cardSpanHeight: determineCardSpanHeight(startTime, endTime),
+					color: event.color,
+				} as EventCardGenerics;
+
+				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
+			});
 		}
 	});
 
