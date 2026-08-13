@@ -166,7 +166,7 @@ export default function ClassList() {
 												<ContextMenuTrigger
 													render={
 														<div
-															className="border-l-2 rounded-sm p-2 wrap-break-word"
+															className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
 															style={{
 																gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
 																backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
@@ -213,7 +213,7 @@ export default function ClassList() {
 										</HoverCardTrigger>
 										<HoverCardContent
 											side="right"
-											className="flex flex-col gap-2"
+											className="flex flex-col gap-1"
 										>
 											{event.isCourse ? (
 												<>
