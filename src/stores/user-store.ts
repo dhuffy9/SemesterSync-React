@@ -80,15 +80,19 @@ const useUserStore = create<UserStore>()(
 						tab.id === id
 							? {
 									...tab, // update credits by looping through all courses and adding up credits
-									totalCredits:
-										tab.courseEvents.reduce(
-											(acc, course) => acc + parseFloat(course.credits),
-											0, // start accumulator at 0
-										) +
-										tab.nonCourseEvents.reduce(
-											(acc, event) => acc + parseFloat(event.credits || "0"),
-											0,
-										),
+									totalCredits: tab.events.reduce(
+										(acc, course) => {
+											switch (course.kind) {
+												case "linked-course":
+													return acc + 3; //FIXME - Need to replace this after updating how course data is distributed through app
+												case "unlinked-course":
+													return acc + course.credits;
+												default:
+													return acc;
+											}
+										},
+										0, // start accumulator at 0
+									),
 								}
 							: tab,
 					),
