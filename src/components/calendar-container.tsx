@@ -20,6 +20,7 @@ import {
 	AlertDialogMedia,
 	AlertDialogTitle,
 } from "./ui/alert-dialog";
+import { ColorPickerInners } from "./ui/color-picker";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -55,8 +56,24 @@ const days = [
 	{ long: "Saturday", short: "Sat" },
 ];
 
+const defaultColors = [
+	"#c22727",
+	"#873d16",
+	"#278716",
+	"#168776",
+	"#4285F4",
+	"#181687",
+	"#561687",
+	"#871663",
+];
+
 export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
+	const getEvent = useUserStore((state) => state.getEvent);
+	const updateCourseEvent = useUserStore((state) => state.updateCourseEvent);
+	const updateNonCourseEvent = useUserStore(
+		(state) => state.updateNonCourseEvent,
+	);
 	const removeEvent = useUserStore((state) => state.removeEvent);
 	const unstructuredEvents = [
 		...(activeTab.courseEvents || []),
@@ -73,8 +90,10 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 	firstDayOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 	// ^ sets day of month to the "selected day of month - # days from Sunday"
 
+	const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [deleteModalEvent, setDeleteModalEvent] = useState<EventCard>();
+	const [modalEvent, setModalEvent] = useState<EventCard>();
+	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	return (
 		<div
@@ -300,7 +319,13 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 												<Edit /> Edit
 											</ContextMenuItem>
 
-											<ContextMenuItem disabled>
+											<ContextMenuItem
+												onClick={() => {
+													setIsColorModalOpen(true);
+													setSelectedColor(event.color);
+													setModalEvent(event);
+												}}
+											>
 												<Palette /> Change Color
 											</ContextMenuItem>
 
@@ -332,7 +357,7 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 														});
 													} else {
 														setIsDeleteModalOpen(true);
-														setDeleteModalEvent(event);
+														setModalEvent(event);
 													}
 												}}
 											>
@@ -350,25 +375,23 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 			</div>
 
 			<AlertDialog open={isDeleteModalOpen}>
-				{deleteModalEvent && (
+				{modalEvent && (
 					<AlertDialogContent size="sm">
 						<AlertDialogHeader>
 							<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
 								<Trash />
 							</AlertDialogMedia>
-							<AlertDialogTitle>
-								Delete {deleteModalEvent.title}
-							</AlertDialogTitle>
+							<AlertDialogTitle>Delete {modalEvent.title}</AlertDialogTitle>
 							<AlertDialogDescription>
 								You are about to delete this time slot
-								{deleteModalEvent.eventMeetingCount > 1 && (
+								{modalEvent.eventMeetingCount > 1 && (
 									<>
 										, and{" "}
 										<span className="font-bold">
-											{deleteModalEvent.eventMeetingCount - 1} other
+											{modalEvent.eventMeetingCount - 1} other
 										</span>{" "}
 										associated time slot
-										{deleteModalEvent.eventMeetingCount > 2 && "s"}
+										{modalEvent.eventMeetingCount > 2 && "s"}
 									</>
 								)}
 							</AlertDialogDescription>
@@ -376,7 +399,7 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 						<AlertDialogFooter>
 							<AlertDialogCancel
 								onClick={() => {
-									setDeleteModalEvent(undefined);
+									setModalEvent(undefined);
 									setIsDeleteModalOpen(false);
 								}}
 							>
@@ -384,11 +407,11 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 							</AlertDialogCancel>
 							<AlertDialogAction
 								variant={"destructive"}
-								disabled={deleteModalEvent === undefined}
+								disabled={modalEvent === undefined}
 								onClick={() => {
-									removeEvent(activeTab.id, deleteModalEvent.eventId);
+									removeEvent(activeTab.id, modalEvent.eventId);
 									setIsDeleteModalOpen(false);
-									setDeleteModalEvent(undefined);
+									setModalEvent(undefined);
 									toast.add({
 										title: "Event Deleted Successfully",
 										type: "success",
@@ -400,6 +423,122 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 						</AlertDialogFooter>
 					</AlertDialogContent>
 				)}
+			</AlertDialog>
+
+			<AlertDialog open={isColorModalOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Change Event Color</AlertDialogTitle>
+					</AlertDialogHeader>
+					<AlertDialogContent>
+						{modalEvent && (
+							<div className="flex flex-row items-start gap-4">
+								<div className="flex flex-col gap-2 flex-1">
+									<ColorPickerInners
+										value={selectedColor}
+										onChange={(v) => setSelectedColor(v)}
+									/>
+
+									<div className="flex flex-row items-center gap-2">
+										{defaultColors.map((color) => (
+											<button
+												key={color}
+												type="button"
+												onClick={() => setSelectedColor(color)}
+												className="size-4 rounded-sm cursor-pointer border border-border"
+												style={{ backgroundColor: color }}
+											></button>
+										))}
+									</div>
+
+									<AlertDialogFooter className="">
+										<AlertDialogCancel
+											onClick={() => {
+												setIsColorModalOpen(false);
+												setModalEvent(undefined);
+											}}
+										>
+											Cancel
+										</AlertDialogCancel>
+										<AlertDialogAction
+											onClick={() => {
+												const ev = getEvent(activeTab.id, modalEvent.eventId);
+
+												if (ev) {
+													ev.color = selectedColor;
+													if ("section" in ev)
+														updateCourseEvent(activeTab.id, ev);
+													else updateNonCourseEvent(activeTab.id, ev);
+
+													setIsColorModalOpen(false);
+													setModalEvent(undefined);
+													toast.add({
+														title: "Event Color Changed",
+														type: "success",
+													});
+												} else {
+													toast.add({
+														title: "Event not found",
+														type: "error",
+													});
+													setIsColorModalOpen(false);
+													setModalEvent(undefined);
+												}
+											}}
+										>
+											Save Color
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</div>
+								<Separator orientation="vertical" />
+								<div className="flex-1 flex flex-col gap-2">
+									<h2 className="font-bold">Event Preview:</h2>
+									<div
+										className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
+										style={{
+											backgroundColor: `color-mix(in oklab, ${selectedColor} 20%, transparent)`,
+											borderColor: selectedColor,
+										}}
+									>
+										<div className="flex flex-col gap-2">
+											<p>{modalEvent.title}</p>
+											<p
+												className={clsx("text-sm", {
+													"italic text-muted-foreground":
+														modalEvent.description.length === 0,
+												})}
+											>
+												{modalEvent.description.length === 0
+													? "No Description"
+													: modalEvent.description}
+											</p>
+
+											<Separator className="bg-black/20" />
+
+											<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
+												<span className="text-foreground">
+													{modalEvent.startTime.toLocaleTimeString("en-US", {
+														hour12: true,
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
+												</span>
+												to
+												<span className="text-foreground">
+													{modalEvent.endTime.toLocaleTimeString("en-US", {
+														hour12: true,
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
+												</span>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						)}
+					</AlertDialogContent>
+				</AlertDialogContent>
 			</AlertDialog>
 		</div>
 	);

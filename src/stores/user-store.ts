@@ -164,6 +164,13 @@ const useUserStore = create<UserStore>()(
 				get().recalculateTabCredits(tabId);
 			},
 
+			getEvent: (tabId, eventId) =>
+				get()
+					.tabs.find((tab) => tab.id === tabId)
+					?.courseEvents.find((event) => event.eventId === eventId) ||
+				get()
+					.tabs.find((tab) => tab.id === tabId)
+					?.nonCourseEvents.find((event) => event.eventId === eventId),
 			removeEvent: (tabId: string, eventId: string) => {
 				set({
 					// loop through all tabs, find with matching id
