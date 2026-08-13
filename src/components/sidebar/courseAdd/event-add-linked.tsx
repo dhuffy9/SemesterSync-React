@@ -35,7 +35,6 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 		const [selectedColor, setSelectedColor] = useState<string>("#4285F4");
 
 		const tab = useUserStore((state) => state.getActiveTab());
-		const courseEventAdd = useUserStore((state) => state.addCourseEvent);
 		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
@@ -45,12 +44,6 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 
 		const handleAddCourse = () => {
 			for (const course of selectedCourse) {
-				courseEventAdd(tab.id, {
-					eventId: uuid(),
-					color: selectedColor,
-					...course,
-				});
-
 				eventAdd(tab.id, {
 					eventId: uuid(),
 					color: selectedColor,

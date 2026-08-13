@@ -1,7 +1,5 @@
 import z from "zod";
-import { assembledCourseSingleSectionSchema } from "@/schemas/course-event";
 import { type Event, eventSchema } from "@/schemas/events";
-import { nonCourseEventSchema } from "@/schemas/non-course-event";
 
 export const termSchema = z.object({
 	code: z.string(),
@@ -11,8 +9,6 @@ export const userTabSchema = z.object({
 	id: z.uuidv4(),
 	name: z.string(),
 	events: z.array(eventSchema),
-	courseEvents: z.array(assembledCourseSingleSectionSchema),
-	nonCourseEvents: z.array(nonCourseEventSchema),
 	totalCredits: z.number(),
 	selectedDate: z.coerce.date(),
 });
@@ -32,8 +28,6 @@ export const userStorePersistSchema = z.object({
 });
 
 export type Term = z.infer<typeof termSchema>;
-export type CourseEvent = z.infer<typeof assembledCourseSingleSectionSchema>;
-export type NonCourseEvent = z.infer<typeof nonCourseEventSchema>;
 export type Tab = z.infer<typeof userTabSchema>;
 export type UserState = z.infer<typeof userStateSchema>;
 export type UserStorePersist = z.infer<typeof userStorePersistSchema>;
@@ -50,14 +44,8 @@ export interface UserActions {
 
 	setActiveTerm: (term: string) => void;
 
-	addCourseEvent: (tabId: string, course: CourseEvent) => void;
-	updateCourseEvent: (tabId: string, course: CourseEvent) => void;
-
-	addNonCourseEvent: (tabId: string, event: NonCourseEvent) => void;
-	updateNonCourseEvent: (tabId: string, event: NonCourseEvent) => void;
-
-	getEvent: (tabId: string, eventId: string) => Event | undefined;
 	getEvents: (tabId: string) => Array<Event>;
+	getEvent: (tabId: string, eventId: string) => Event | undefined;
 	addEvent: (tabId: string, event: Event) => void;
 	updateEvent: (tabId: string, event: Event) => void;
 	removeEvent: (tabId: string, eventId: string) => void;

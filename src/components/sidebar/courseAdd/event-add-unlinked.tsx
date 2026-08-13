@@ -62,18 +62,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { TermResponse } from "@/data/terms";
 import { createSwipeRightVariant, TRANSITION } from "@/lib/animation";
 import { cn } from "@/lib/utils";
-import {
-	courseAddSchema,
-	type Meeting,
-	type MeetingAddType,
-} from "@/schemas/course-event";
+import { courseAddSchema, type MeetingAddType } from "@/schemas/course-event";
 import type { Event, UnlinkedEventVariantMeeting } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
 import type {
 	AssembledCourseSingleSection,
 	CourseResponse,
 } from "@/types/courses";
-import type { CourseEvent } from "@/types/user-store";
 import CourseAddList, { mergeMeetings } from "./course-add-list";
 
 const defaultColors = [
@@ -109,7 +104,6 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 
 		const tab = useUserStore((state) => state.getActiveTab());
 		const term = useUserStore((state) => state.activeTerm);
-		const courseEventAdd = useUserStore((state) => state.addCourseEvent);
 		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
@@ -141,7 +135,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 
 				if (typeof terms === "number") return;
 
-				const newEvent: Event = {
+				const event: Event = {
 					eventId: uuidv4(),
 					color: formData.color,
 
@@ -156,63 +150,10 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 					meetings: [],
 				};
 
-				const courseEvent: CourseEvent = {
-					eventId: uuidv4(),
-					color: formData.color,
-					course_id: -1,
-					course_code: formData.courseCode,
-					course_title: formData.courseTitle,
-					credits: formData.credits,
-					term_code: formData.termCode,
-					term_name:
-						terms.find((term) => term.term_code === formData.termCode)
-							?.term_name || "",
-					section: {
-						section_id: -1,
-						section_code: formData.section.sectionCode,
-						start_date: formData.section.startDate,
-						end_date: formData.section.endDate,
-						delivery_method: formData.section.deliveryMethod,
-						course_attribute: "",
-						class_comments: "",
-						seats_available: -1,
-						seats_total: -1,
-						meetings: [],
-					},
-				};
-
-				const formattedMeetings: Array<Meeting> = [];
+				const formattedMeetings: Array<UnlinkedEventVariantMeeting> = [];
 				for (const meeting of formData.section.meetings) {
 					for (const day of meeting.days) {
 						formattedMeetings.push({
-							id: -1,
-							day: day,
-							start_time: meeting.startTime,
-							end_time: meeting.endTime,
-							campus: meeting.campus,
-							building: {
-								id: -1,
-								long: meeting.building,
-								short: "",
-							},
-							room: {
-								id: -1,
-								name: meeting.room,
-							},
-							instructors: meeting.instructors.map((instructor) => ({
-								id: -1,
-								first_name: instructor.firstName,
-								last_name: instructor.lastName,
-							})),
-						});
-					}
-				}
-				courseEvent.section.meetings = formattedMeetings;
-
-				const newFormattedMeetings: Array<UnlinkedEventVariantMeeting> = [];
-				for (const meeting of formData.section.meetings) {
-					for (const day of meeting.days) {
-						newFormattedMeetings.push({
 							day: day as UnlinkedEventVariantMeeting["day"],
 							startTime: new Date(`2026-08-13T${meeting.startTime}`),
 							endTime: new Date(`2026-08-13T${meeting.endTime}`),
@@ -223,10 +164,9 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 						});
 					}
 				}
-				newEvent.meetings = newFormattedMeetings;
-				eventAdd(tab.id, newEvent);
+				event.meetings = formattedMeetings;
 
-				courseEventAdd(tab.id, courseEvent);
+				eventAdd(tab.id, event);
 				toast.add({
 					type: "success",
 					description: "Event added to calendar",

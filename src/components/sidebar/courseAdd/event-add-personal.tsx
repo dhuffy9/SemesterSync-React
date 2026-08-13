@@ -63,12 +63,10 @@ import { cn } from "@/lib/utils";
 import type { Event, PersonalEventVariantMeeting } from "@/schemas/events";
 import {
 	type NonCourseAddType,
-	type NonCourseMeeting,
 	type NonCourseMeetingAddType,
 	nonCourseAddSchema,
 } from "@/schemas/non-course-event";
 import useUserStore from "@/stores/user-store";
-import type { NonCourseEvent } from "@/types/user-store";
 
 const defaultColors = [
 	"#c22727",
@@ -99,7 +97,6 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 
 		const tab = useUserStore((state) => state.getActiveTab());
 		const term = useUserStore((state) => state.activeTerm);
-		const nonCourseEventAdd = useUserStore((state) => state.addNonCourseEvent);
 		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
@@ -110,7 +107,6 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 				termCode: term,
 				title: "",
 				description: "",
-				credits: "",
 				color: "#4285F4",
 				startDate: new Date(),
 				endDate: new Date(),
@@ -127,7 +123,7 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 
 				if (typeof terms === "number") return;
 
-				const newEvent: Event = {
+				const event: Event = {
 					eventId: uuidv4(),
 					color: formData.color,
 
@@ -141,39 +137,10 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 					meetings: [],
 				};
 
-				const event: NonCourseEvent = {
-					eventId: uuidv4(),
-					color: formData.color,
-					title: formData.title,
-					description: formData.description,
-					credits: formData.credits,
-					term_code: formData.termCode,
-					term_name:
-						terms.find((term) => term.term_code === formData.termCode)
-							?.term_name || "",
-					startDate: formData.startDate,
-					endDate: formData.endDate,
-					meetings: [],
-				};
-
-				const formattedMeetings: Array<NonCourseMeeting> = [];
+				const formattedMeetings: Array<PersonalEventVariantMeeting> = [];
 				for (const meeting of formData.meetings) {
 					for (const day of meeting.days) {
 						formattedMeetings.push({
-							id: uuidv4(),
-							day: day,
-							start_time: meeting.startTime,
-							end_time: meeting.endTime,
-							location: meeting.location,
-						});
-					}
-				}
-				event.meetings = formattedMeetings;
-
-				const newFormattedMeetings: Array<PersonalEventVariantMeeting> = [];
-				for (const meeting of formData.meetings) {
-					for (const day of meeting.days) {
-						newFormattedMeetings.push({
 							day: day as PersonalEventVariantMeeting["day"],
 							startTime: new Date(`2026-08-13T${meeting.startTime}`),
 							endTime: new Date(`2026-08-13T${meeting.endTime}`),
@@ -181,10 +148,9 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 						});
 					}
 				}
-				newEvent.meetings = newFormattedMeetings;
-				eventAdd(tab.id, newEvent);
+				event.meetings = formattedMeetings;
 
-				nonCourseEventAdd(tab.id, event);
+				eventAdd(tab.id, event);
 				toast.add({
 					type: "success",
 					description: "Event added to calendar",
@@ -345,37 +311,6 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 												id={field.name}
 												name={field.name}
 												placeholder="Description of the event"
-												value={field.state.value}
-												onBlur={field.handleBlur}
-												onChange={(e) => field.handleChange(e.target.value)}
-												aria-invalid={isInvalid}
-											/>
-											{isInvalid && (
-												<FieldError errors={field.state.meta.errors} />
-											)}
-										</Field>
-									);
-								}}
-							/>
-
-							<form.Field
-								name="credits"
-								children={(field) => {
-									const isInvalid =
-										field.state.meta.isTouched && !field.state.meta.isValid;
-
-									return (
-										<Field data-invalid={isInvalid}>
-											<FieldLabel optional>Credits</FieldLabel>
-											<FieldDescription>
-												If you would like this event to add a number of credits
-												to the credit total for the tab, input a number here.
-											</FieldDescription>
-											<Input
-												type="number"
-												id={field.name}
-												name={field.name}
-												placeholder="3"
 												value={field.state.value}
 												onBlur={field.handleBlur}
 												onChange={(e) => field.handleChange(e.target.value)}

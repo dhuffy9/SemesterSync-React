@@ -2,21 +2,13 @@ import { v4 as uuid } from "uuid";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Event } from "@/schemas/events";
-import type {
-	CourseEvent,
-	NonCourseEvent,
-	Tab,
-	UserState,
-	UserStore,
-} from "@/types/user-store";
+import type { Tab, UserState, UserStore } from "@/types/user-store";
 
 // This will be the default state that the user will see when they first load
 const defaultTab: Tab = {
 	id: uuid(),
 	name: `Schedule 1`,
 	events: [],
-	courseEvents: [],
-	nonCourseEvents: [],
 	totalCredits: 0,
 	selectedDate: new Date(),
 };
@@ -46,8 +38,6 @@ const useUserStore = create<UserStore>()(
 							id: uuid(),
 							name: `Schedule ${get().tabs.length + 1}`,
 							events: [],
-							courseEvents: [],
-							nonCourseEvents: [],
 							totalCredits: 0,
 							selectedDate: new Date(),
 						},
@@ -103,82 +93,12 @@ const useUserStore = create<UserStore>()(
 
 			setActiveTerm: (term: string) => set({ activeTerm: term }),
 
-			addCourseEvent: (tabId: string, course: CourseEvent) => {
-				set({
-					// loop through all tabs, find with matching id
-					tabs: get().tabs.map((tab) =>
-						tab.id === tabId
-							? {
-									...tab, // spread existing courses & add new course passed to func
-									courseEvents: [...tab.courseEvents, course],
-								}
-							: tab,
-					),
-				});
-
-				// re-calc the total credits
-				get().recalculateTabCredits(tabId);
-			},
-			updateCourseEvent: (tabId: string, course: CourseEvent) => {
-				set({
-					// loop through all tabs, find with matching id
-					tabs: get().tabs.map((tab) =>
-						tab.id === tabId
-							? {
-									...tab, // loop through all course & replace the one with matching id
-									courseEvents: tab.courseEvents.map((c) =>
-										c.eventId === course.eventId ? course : c,
-									),
-								}
-							: tab,
-					),
-				});
-
-				// re-calc the total credits
-				get().recalculateTabCredits(tabId);
-			},
-
-			addNonCourseEvent: (tabId: string, event: NonCourseEvent) => {
-				set({
-					// loop through all tabs, find with matching id
-					tabs: get().tabs.map((tab) =>
-						tab.id === tabId
-							? {
-									...tab, // spread existing courses & add new course passed to func
-									nonCourseEvents: [...tab.nonCourseEvents, event],
-								}
-							: tab,
-					),
-				});
-
-				// re-calc the total credits
-				get().recalculateTabCredits(tabId);
-			},
-			updateNonCourseEvent: (tabId: string, event: NonCourseEvent) => {
-				set({
-					// loop through all tabs, find with matching id
-					tabs: get().tabs.map((tab) =>
-						tab.id === tabId
-							? {
-									...tab, // loop through all course & replace the one with matching id
-									nonCourseEvents: tab.nonCourseEvents.map((c) =>
-										c.eventId === event.eventId ? event : c,
-									),
-								}
-							: tab,
-					),
-				});
-
-				// re-calc the total credits
-				get().recalculateTabCredits(tabId);
-			},
-
+			getEvents: (tabId: string) =>
+				get().tabs.find((tab) => tab.id === tabId)?.events || EMPTY_EVENT_ARR,
 			getEvent: (tabId, eventId) =>
 				get()
 					.tabs.find((tab) => tab.id === tabId)
 					?.events.find((event) => event.eventId === eventId),
-			getEvents: (tabId: string) =>
-				get().tabs.find((tab) => tab.id === tabId)?.events || EMPTY_EVENT_ARR,
 			addEvent: (tabId: string, event: Event) => {
 				set({
 					tabs: get().tabs.map((tab) =>
@@ -230,7 +150,7 @@ const useUserStore = create<UserStore>()(
 		{
 			name: "user-store",
 			storage: createJSONStorage(() => localStorage),
-			version: 2, // if we make breaking changes to store we bump version & define a migration
+			version: 3, // if we make breaking changes to store we bump version & define a migration
 			migrate: (persistedState, version) => {
 				if (version === 1) {
 					// @ts-expect-error
@@ -251,6 +171,10 @@ const useUserStore = create<UserStore>()(
 					for (let i = 0; i < persistedState.tabs.length; i++) {
 						// @ts-expect-error
 						persistedState.tabs[i].events = [];
+						// @ts-expect-error
+						delete persistedState.tabs[i].courseEvents;
+						// @ts-expect-error
+						delete persistedState.tabs[i].nonCourseEvents;
 					}
 
 					version += 1;
