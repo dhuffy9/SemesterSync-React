@@ -1,5 +1,6 @@
 "use client";
 
+import clsx from "clsx";
 import { ChevronRightIcon, PlusIcon, XIcon } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { TermResponse } from "@/data/terms";
 import { crateSwipeLeftVariant, TRANSITION } from "@/lib/animation";
+import { cn } from "@/lib/utils";
 import type { CourseResponse } from "@/types/courses";
 import CourseAddManual from "./course-add-manual";
 import CourseAddQuick from "./course-add-quick";
@@ -21,22 +23,25 @@ import EventAddManual from "./event-add-manual";
 
 const selectOptions = [
 	{
-		title: "Quick Add Course",
+		title: "Add Course-Linked Event",
 		description:
-			"All the details from the course and section you select will automatically be added to your schedule.",
+			"Linked events are events for courses on your calendar that will automatically update with the latest information from the course catalog.",
 		key: "quick",
+		recommended: true,
 	},
 	{
-		title: "Manually Add Course",
+		title: "Manually Add Course Event",
 		description:
-			"Gives you the ability to fill in all of the course details, you can still search for existing courses to prefill the inputs.",
+			"Manually added course events can not automatically update with information from the catalog, but can be pre-filled using information from from the catalog.",
 		key: "manual",
+		recommended: false,
 	},
 	{
 		title: "Add Non-Course Event",
 		description:
-			"Ability to add non-course events such as when you have work, requires less information.",
+			"Ability to add non-course events for personal time, such as when you have work, these require less information.",
 		key: "event",
+		recommended: false,
 	},
 ];
 
@@ -80,11 +85,21 @@ export default function EventAddModalClient({
 							>
 								{selectOptions.map((option) => (
 									<motion.button
-										className="rounded-md border border-border p-2 text-left hover:shadow flex flex-row items-center gap-2 cursor-pointer"
+										className={cn(
+											clsx(
+												"rounded-md border border-border p-2 text-left hover:shadow flex flex-row items-center gap-2 cursor-pointer",
+												{ "border-primary shadow-primary": option.recommended },
+											),
+										)}
 										key={option.key}
 										onClick={() => setSelectedOption(option.key)}
 										whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
 									>
+										{option.recommended && (
+											<div className="absolute -top-1.5 right-0 bg-primary text-primary-foreground rounded-lg p-1 text-sm">
+												Recommended
+											</div>
+										)}
 										<div>
 											<p>{option.title}</p>
 											<p className="text-muted-foreground text-sm">
