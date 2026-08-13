@@ -272,9 +272,22 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 															</span>
 														</p>
 													) : (
-														<p>
+														<p
+															className={cn(
+																clsx("", {
+																	"text-yellow-600":
+																		event.seatsAvailable / event.seatsTotal <
+																		0.5,
+																	"text-destructive":
+																		event.seatsAvailable / event.seatsTotal <
+																		0.25,
+																}),
+															)}
+														>
 															<PrimaryText>Seats: </PrimaryText>
-															{event.seatsAvailable}/{event.seatsTotal}
+															{event.seatsAvailable > -1
+																? `${event.seatsAvailable}/${event.seatsTotal}`
+																: `${Math.abs(event.seatsAvailable)} on waitlist`}
 														</p>
 													)}
 													<p>
