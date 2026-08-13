@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Edit, Palette, Replace, Trash } from "lucide-react";
+import { Edit, Palette, Trash } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { cn } from "@/lib/utils";
@@ -25,12 +25,7 @@ import {
 	ContextMenu,
 	ContextMenuContent,
 	ContextMenuItem,
-	ContextMenuRadioGroup,
-	ContextMenuRadioItem,
 	ContextMenuSeparator,
-	ContextMenuSub,
-	ContextMenuSubContent,
-	ContextMenuSubTrigger,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
@@ -69,6 +64,7 @@ const defaultColors = [
 
 export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
+	const activeTerm = useUserStore((state) => state.activeTerm);
 	const getEvent = useUserStore((state) => state.getEvent);
 	const updateCourseEvent = useUserStore((state) => state.updateCourseEvent);
 	const updateNonCourseEvent = useUserStore(
@@ -94,6 +90,8 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [modalEvent, setModalEvent] = useState<EventCard>();
 	const [selectedColor, setSelectedColor] = useState("#4285F4");
+
+	if (typeof courses === "number") return <p>Error loading courses</p>;
 
 	return (
 		<div
@@ -209,7 +207,7 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 															className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
 															style={{
 																gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
-																backgroundColor: `color-mix(in oklab, ${event.color} 20%, transparent)`,
+																backgroundColor: `color-mix(in oklab, ${event.color} 20%, var(--background))`,
 																borderColor: event.color,
 															}}
 														/>
@@ -328,21 +326,6 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 											>
 												<Palette /> Change Color
 											</ContextMenuItem>
-
-											{event.isCourse && event.seatsTotal !== -1 && (
-												<ContextMenuSub>
-													<ContextMenuSubTrigger>
-														<Replace /> Swap Section
-													</ContextMenuSubTrigger>
-													<ContextMenuSubContent>
-														<ContextMenuRadioGroup>
-															<ContextMenuRadioItem value={"section1"}>
-																1
-															</ContextMenuRadioItem>
-														</ContextMenuRadioGroup>
-													</ContextMenuSubContent>
-												</ContextMenuSub>
-											)}
 
 											<ContextMenuSeparator />
 
