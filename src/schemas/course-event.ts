@@ -33,8 +33,6 @@ export const meetingSchema = z.object({
 	instructors: z.array(instructorSchema),
 });
 
-export type Meeting = z.infer<typeof meetingSchema>;
-
 export const meetingAddSchema = z.object({
 	days: z.array(z.string()),
 	startTime: z.string().min(1, "Start time is required"),

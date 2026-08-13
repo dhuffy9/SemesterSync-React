@@ -5,10 +5,10 @@ import { Edit, Palette, Trash } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { cn } from "@/lib/utils";
+import type { Event } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
-import type { CourseResponse } from "@/types/courses";
-import type { EventCard, EventCardsObjectType } from "@/types/events";
-import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
+import type { AssembledCourse, CourseResponse } from "@/types/courses";
+import type { CalendarCard, CalendarCards } from "@/types/events";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -31,6 +31,7 @@ import {
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Separator } from "./ui/separator";
 import { toast } from "./ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const startHour = 6; // Inclusive, 6 AM
 const endHour = 23; // Exclusive, 11 PM (up until 22:59)
@@ -65,17 +66,10 @@ const defaultColors = [
 export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const activeTerm = useUserStore((state) => state.activeTerm);
+	const events = useUserStore((state) => state.getEvents(state.activeTab));
 	const getEvent = useUserStore((state) => state.getEvent);
-	const updateCourseEvent = useUserStore((state) => state.updateCourseEvent);
-	const updateNonCourseEvent = useUserStore(
-		(state) => state.updateNonCourseEvent,
-	);
+	const updateEvent = useUserStore((state) => state.updateEvent);
 	const removeEvent = useUserStore((state) => state.removeEvent);
-	const unstructuredEvents = [
-		...(activeTab.courseEvents || []),
-		...(activeTab.nonCourseEvents || []),
-	];
-	const structuredEvents = transformEvents(unstructuredEvents);
 
 	const today = new Date();
 	const selectedDate = activeTab.selectedDate
@@ -88,10 +82,12 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 
 	const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [modalEvent, setModalEvent] = useState<EventCard>();
+	const [modalEvent, setModalEvent] = useState<CalendarCard>();
 	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	if (typeof courses === "number") return <p>Error loading courses</p>;
+
+	const structuredEvents = structureEventCards(events, activeTerm, courses);
 
 	return (
 		<div
@@ -190,184 +186,179 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 
 			{/* Event Grid */}
 			<div className="col-start-2 row-start-2 col-span-full row-span-full grid grid-cols-subgrid grid-rows-subgrid">
-				{Object.keys(structuredEvents).map((key, i) =>
-					structuredEvents[key as keyof EventCardsObjectType].map((event) => {
-						const d = new Date(firstDayOfWeek);
-						d.setDate(firstDayOfWeek.getDate() + i);
+				{structuredEvents.map((event) => {
+					const d = new Date(firstDayOfWeek);
+					d.setDate(firstDayOfWeek.getDate() + event.columnOffset);
 
-						if (d >= event.startDate && d <= event.endDate) {
-							return (
-								<HoverCard key={event.eventKey}>
-									<ContextMenu>
-										<HoverCardTrigger
+					if (d <= event.startDate || d >= event.endDate) return null;
+
+					return (
+						<HoverCard key={event.key}>
+							<ContextMenu>
+								<HoverCardTrigger
+									render={
+										<ContextMenuTrigger
 											render={
-												<ContextMenuTrigger
-													render={
-														<div
-															className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
-															style={{
-																gridArea: `${event.cardTimeOffset} / ${event.cardDayOffset} / span ${event.cardSpanHeight} / ${event.cardDayOffset}`,
-																backgroundColor: `color-mix(in oklab, ${event.color} 20%, var(--background))`,
-																borderColor: event.color,
-															}}
-														/>
-													}
+												<div
+													className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
+													style={{
+														gridArea: `${event.rowOffset} / ${event.columnOffset} / span ${event.spanHeight} / ${event.columnOffset}`,
+														backgroundColor: `color-mix(in oklab, ${event.color} 20%, var(--background))`,
+														borderColor: event.color,
+													}}
 												/>
 											}
+										/>
+									}
+								>
+									<div className="flex flex-col gap-2">
+										<p>{event.title}</p>
+										<p
+											className={clsx("text-sm", {
+												"italic text-muted-foreground": !event.description,
+											})}
 										>
-											<div className="flex flex-col gap-2">
-												<p>{event.title}</p>
+											{event.description ? event.description : "No Description"}
+										</p>
+
+										<Separator className="bg-black/20" />
+
+										<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
+											<span className="text-foreground">
+												{event.startTime.toLocaleTimeString("en-US", {
+													hour12: true,
+													hour: "2-digit",
+													minute: "2-digit",
+												})}
+											</span>
+											to
+											<span className="text-foreground">
+												{event.endTime.toLocaleTimeString("en-US", {
+													hour12: true,
+													hour: "2-digit",
+													minute: "2-digit",
+												})}
+											</span>
+										</div>
+									</div>
+								</HoverCardTrigger>
+								<HoverCardContent side="right" className="flex flex-col gap-1">
+									{event.kind !== "personal" ? (
+										<>
+											<p>
+												<PrimaryText>Course: </PrimaryText>
+												{event.title}
+											</p>
+											<p>
+												<PrimaryText>Credits: </PrimaryText>
+												{event.credits}
+											</p>
+											{event.kind === "linked-course" && (
 												<p
-													className={clsx("text-sm", {
-														"italic text-muted-foreground":
-															event.description.length === 0,
-													})}
-												>
-													{event.description.length === 0
-														? "No Description"
-														: event.description}
-												</p>
-
-												<Separator className="bg-black/20" />
-
-												<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
-													<span className="text-foreground">
-														{event.startTime.toLocaleTimeString("en-US", {
-															hour12: true,
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</span>
-													to
-													<span className="text-foreground">
-														{event.endTime.toLocaleTimeString("en-US", {
-															hour12: true,
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</span>
-												</div>
-											</div>
-										</HoverCardTrigger>
-										<HoverCardContent
-											side="right"
-											className="flex flex-col gap-1"
-										>
-											{event.isCourse ? (
-												<>
-													<p>
-														<PrimaryText>Course: </PrimaryText>
-														{event.title}
-													</p>
-													<p>
-														<PrimaryText>Credits: </PrimaryText>
-														{event.credits}
-													</p>
-													{event.seatsAvailable === -1 &&
-													event.seatsTotal === -1 ? (
-														<p>
-															<PrimaryText>Seats: </PrimaryText>{" "}
-															<span className="italic text-muted-foreground">
-																information not available
-															</span>
-														</p>
-													) : (
-														<p
-															className={cn(
-																clsx("", {
-																	"text-yellow-600":
-																		event.seatsAvailable / event.seatsTotal <
-																		0.5,
-																	"text-destructive":
-																		event.seatsAvailable / event.seatsTotal <
-																		0.25,
-																}),
-															)}
-														>
-															<PrimaryText>Seats: </PrimaryText>
-															{event.seatsAvailable > -1
-																? `${event.seatsAvailable}/${event.seatsTotal}`
-																: `${Math.abs(event.seatsAvailable)} on waitlist`}
-														</p>
+													className={cn(
+														clsx("", {
+															"text-yellow-600":
+																event.seatsAvailable / event.seatsTotal < 0.5,
+															"text-destructive":
+																event.seatsAvailable / event.seatsTotal < 0.25,
+														}),
 													)}
-													<p>
-														<PrimaryText>Section: </PrimaryText>
-														{event.sectionCode}
-													</p>
-													<p>
-														<PrimaryText>Campus: </PrimaryText>
-														{event.campus}
-													</p>
-													<p>
-														<PrimaryText>Building: </PrimaryText>
-														{event.building.long}
-													</p>
-													<p>
-														<PrimaryText>Room: </PrimaryText>
-														{event.room}
-													</p>
-													<Separator className="bg-black/20" />
-													<p>
-														<PrimaryText>Instructors: </PrimaryText>
-														{event.instructors.map((instructor) => (
-															<Fragment
-																key={`${instructor.firstName}-${instructor.lastName}`}
-															>
-																{instructor.firstName} {instructor.lastName}
-															</Fragment>
-														))}
-													</p>
-												</>
-											) : (
-												<p>
-													<PrimaryText>Location: </PrimaryText>
-													{event.location}
+												>
+													<PrimaryText>Seats: </PrimaryText>
+													{event.seatsAvailable > -1
+														? `${event.seatsAvailable}/${event.seatsTotal}`
+														: `${Math.abs(event.seatsAvailable)} on waitlist`}
 												</p>
 											)}
-										</HoverCardContent>
-										<ContextMenuContent>
-											<ContextMenuItem disabled>
-												<Edit /> Edit
-											</ContextMenuItem>
+											<p>
+												<PrimaryText>Section: </PrimaryText>
+												{event.sectionCode}
+											</p>
+											<p>
+												<PrimaryText>Campus: </PrimaryText>
+												{event.campus}
+											</p>
+											{event.kind === "linked-course" ? (
+												<span>
+													<PrimaryText>Building: </PrimaryText>
+													<Tooltip>
+														<TooltipTrigger>
+															{event.building.short}
+														</TooltipTrigger>
+														<TooltipContent>
+															{event.building.long}
+														</TooltipContent>
+													</Tooltip>
+												</span>
+											) : (
+												<p>
+													<PrimaryText>Building: </PrimaryText>
+													{event.building}
+												</p>
+											)}
+											<p>
+												<PrimaryText>Room: </PrimaryText>
+												{event.room}
+											</p>
+											<Separator className="bg-black/20" />
+											<p>
+												<PrimaryText>Instructors: </PrimaryText>
+												{event.instructors.map((instructor) => (
+													<Fragment
+														key={`${instructor.firstName}-${instructor.lastName}`}
+													>
+														{instructor.firstName} {instructor.lastName}
+													</Fragment>
+												))}
+											</p>
+										</>
+									) : (
+										<p>
+											<PrimaryText>Location: </PrimaryText>
+											{event.location}
+										</p>
+									)}
+								</HoverCardContent>
 
-											<ContextMenuItem
-												onClick={() => {
-													setIsColorModalOpen(true);
-													setSelectedColor(event.color);
-													setModalEvent(event);
-												}}
-											>
-												<Palette /> Change Color
-											</ContextMenuItem>
+								<ContextMenuContent>
+									<ContextMenuItem disabled>
+										<Edit /> Edit
+									</ContextMenuItem>
 
-											<ContextMenuSeparator />
+									<ContextMenuItem
+										onClick={() => {
+											setIsColorModalOpen(true);
+											setSelectedColor(event.color);
+											setModalEvent(event);
+										}}
+									>
+										<Palette /> Change Color
+									</ContextMenuItem>
 
-											<ContextMenuItem
-												variant="destructive"
-												onClick={(e) => {
-													if (e.shiftKey) {
-														removeEvent(activeTab.id, event.eventId);
-														toast.add({
-															title: "Event Deleted Successfully",
-															type: "success",
-														});
-													} else {
-														setIsDeleteModalOpen(true);
-														setModalEvent(event);
-													}
-												}}
-											>
-												<Trash /> Delete
-											</ContextMenuItem>
-										</ContextMenuContent>
-									</ContextMenu>
-								</HoverCard>
-							);
-						} else {
-							return null;
-						}
-					}),
-				)}
+									<ContextMenuSeparator />
+
+									<ContextMenuItem
+										variant="destructive"
+										onClick={(e) => {
+											if (e.shiftKey) {
+												removeEvent(activeTab.id, event.id);
+												toast.add({
+													title: "Event Deleted Successfully",
+													type: "success",
+												});
+											} else {
+												setIsDeleteModalOpen(true);
+												setModalEvent(event);
+											}
+										}}
+									>
+										<Trash /> Delete
+									</ContextMenuItem>
+								</ContextMenuContent>
+							</ContextMenu>
+						</HoverCard>
+					);
+				})}
 			</div>
 
 			<AlertDialog open={isDeleteModalOpen}>
@@ -380,14 +371,14 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 							<AlertDialogTitle>Delete {modalEvent.title}</AlertDialogTitle>
 							<AlertDialogDescription>
 								You are about to delete this time slot
-								{modalEvent.eventMeetingCount > 1 && (
+								{modalEvent.meetingCount > 1 && (
 									<>
 										, and{" "}
 										<span className="font-bold">
-											{modalEvent.eventMeetingCount - 1} other
+											{modalEvent.meetingCount - 1} other
 										</span>{" "}
 										associated time slot
-										{modalEvent.eventMeetingCount > 2 && "s"}
+										{modalEvent.meetingCount > 2 && "s"}
 									</>
 								)}
 							</AlertDialogDescription>
@@ -405,7 +396,7 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 								variant={"destructive"}
 								disabled={modalEvent === undefined}
 								onClick={() => {
-									removeEvent(activeTab.id, modalEvent.eventId);
+									removeEvent(activeTab.id, modalEvent.id);
 									setIsDeleteModalOpen(false);
 									setModalEvent(undefined);
 									toast.add({
@@ -458,13 +449,11 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 										</AlertDialogCancel>
 										<AlertDialogAction
 											onClick={() => {
-												const ev = getEvent(activeTab.id, modalEvent.eventId);
+												const ev = getEvent(activeTab.id, modalEvent.id);
 
 												if (ev) {
 													ev.color = selectedColor;
-													if ("section" in ev)
-														updateCourseEvent(activeTab.id, ev);
-													else updateNonCourseEvent(activeTab.id, ev);
+													updateEvent(activeTab.id, ev);
 
 													setIsColorModalOpen(false);
 													setModalEvent(undefined);
@@ -501,12 +490,12 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 											<p
 												className={clsx("text-sm", {
 													"italic text-muted-foreground":
-														modalEvent.description.length === 0,
+														!modalEvent.description,
 												})}
 											>
-												{modalEvent.description.length === 0
-													? "No Description"
-													: modalEvent.description}
+												{modalEvent.description
+													? modalEvent.description
+													: "No Description"}
 											</p>
 
 											<Separator className="bg-black/20" />
@@ -549,101 +538,174 @@ function formatHourPair(hour: number) {
 	};
 }
 
-function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
-	const transformedEvents = {
-		sunday: [],
-		monday: [],
-		tuesday: [],
-		wednesday: [],
-		thursday: [],
-		friday: [],
-		saturday: [],
-	} as EventCardsObjectType;
+function structureEventCards(
+	events: Array<Event>,
+	activeTerm: string,
+	courses: Record<string, Array<AssembledCourse>>,
+) {
+	const structuredEvents: CalendarCards = [];
 
-	events.forEach((event) => {
-		if ("section" in event) {
-			event.section.meetings.forEach((meeting) => {
-				const startTime = new Date(`2026-08-11T${meeting.start_time}`);
-				const endTime = new Date(`2026-08-11T${meeting.end_time}`);
-				const determinedDayOffset = determineCardDayOffset(meeting.day);
+	for (const event of events) {
+		switch (event.kind) {
+			case "linked-course": {
+				if (event.termCode !== activeTerm) continue;
+				const courseData = courses[activeTerm].find(
+					(course) => course.course_id === event.courseId,
+				);
+				if (!courseData) continue;
+				const sectionData = courseData.sections.find(
+					(section) => section.section_id === event.sectionId,
+				);
+				if (!sectionData) continue;
 
-				// outside of cal boundaries
-				if (startTime.getHours() >= endHour) return;
-				if (endTime.getHours() < startHour) return;
-				if (determinedDayOffset === -1) return;
+				for (const meeting of sectionData.meetings) {
+					const startDate = new Date(sectionData.start_date);
+					const endDate = new Date(sectionData.end_date);
+					const startTime = new Date(`2026-08-13T${meeting.start_time}`);
+					const endTime = new Date(`2026-08-13T${meeting.end_time}`);
 
-				const eventGeneric = {
-					eventId: event.eventId,
-					eventKey: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
-					eventMeetingCount: event.section.meetings.length,
-					startDate: new Date(event.section.start_date),
-					endDate: new Date(event.section.end_date),
-					startTime,
-					endTime,
-					cardTimeOffset: determineCardTimeOffset(startTime),
-					cardDayOffset: determinedDayOffset,
-					cardSpanHeight: determineCardSpanHeight(startTime, endTime),
-					color: event.color,
+					if (startTime.getHours() >= endHour) continue;
+					if (endTime.getHours() < startHour) continue;
 
-					title: `${event.course_code}-${event.section.section_code}`,
-					description: `${event.course_title}`,
-					isCourse: true,
-					credits: parseFloat(event.credits),
-					seatsAvailable: event.section.seats_available,
-					seatsTotal: event.section.seats_total,
-					sectionCode: event.section.section_code,
-					campus: meeting.campus,
-					building: {
-						long: meeting.building.long,
-						short: meeting.building.short,
-					},
-					room: meeting.room.name || "",
-					instructors: meeting.instructors.map((i) => {
-						return { firstName: i.first_name, lastName: i.last_name };
-					}),
-					courseId: event.course_id,
-					sectionId: event.section.section_id,
-				} as EventCard;
+					const columnOffset = determineCardColumnOffset(meeting.day);
+					const rowOffset = determineCardRowOffset(startTime);
+					const spanHeight = determineCardSpanHeight(startTime, endTime);
 
-				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
-			});
-		} else {
-			event.meetings.forEach((meeting) => {
-				const startTime = new Date(`2026-08-11T${meeting.start_time}`);
-				const endTime = new Date(`2026-08-11T${meeting.end_time}`);
-				const determinedDayOffset = determineCardDayOffset(meeting.day);
+					if (columnOffset === -1) continue;
 
-				// outside of cal boundaries
-				if (startTime.getHours() >= endHour) return;
-				if (endTime.getHours() < startHour) return;
-				if (determinedDayOffset === -1) return;
+					structuredEvents.push({
+						id: event.eventId,
+						key: `${event.eventId}-${meeting.day}-${startTime.toString()}-${endTime.toString()}`,
+						meetingCount: sectionData.meetings.length,
 
-				const eventGeneric = {
-					eventId: event.eventId,
-					eventKey: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
-					eventMeetingCount: event.meetings.length,
-					startDate: new Date(event.startDate),
-					endDate: new Date(event.endDate),
-					startTime,
-					endTime,
-					cardTimeOffset: determineCardTimeOffset(startTime),
-					cardDayOffset: determinedDayOffset,
-					cardSpanHeight: determineCardSpanHeight(startTime, endTime),
-					color: event.color,
+						title: `${courseData.course_code}-${sectionData.section_code}`,
+						description: `${courseData.course_title}`,
 
-					title: event.title,
-					description: event.description || "",
-					isCourse: false,
-					credits: event.credits,
-					location: meeting.location || "",
-				} as EventCard;
+						startDate,
+						endDate,
+						startTime,
+						endTime,
 
-				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
-			});
+						rowOffset: rowOffset,
+						columnOffset: columnOffset,
+						spanHeight: spanHeight,
+
+						color: event.color,
+
+						kind: "linked-course",
+						sectionCode: sectionData.section_code,
+						courseId: courseData.course_id,
+						sectionId: sectionData.section_id,
+
+						seatsAvailable: sectionData.seats_available,
+						seatsTotal: sectionData.seats_total,
+
+						credits: parseFloat(courseData.credits),
+
+						campus: meeting.campus,
+						building: meeting.building,
+						room: meeting.room.name || "",
+						instructors: meeting.instructors.map((i) => ({
+							firstName: i.first_name,
+							lastName: i.last_name,
+						})),
+					});
+				}
+				break;
+			}
+			case "unlinked-course": {
+				for (const meeting of event.meetings) {
+					const startDate = new Date(event.startDate);
+					const endDate = new Date(event.endDate);
+					const startTime = new Date(meeting.startTime);
+					const endTime = new Date(meeting.endTime);
+
+					if (startTime.getHours() >= endHour) continue;
+					if (endTime.getHours() < startHour) continue;
+
+					const columnOffset = determineCardColumnOffset(meeting.day);
+					const rowOffset = determineCardRowOffset(startTime);
+					const spanHeight = determineCardSpanHeight(startTime, endTime);
+
+					if (columnOffset === -1) continue;
+
+					structuredEvents.push({
+						id: event.eventId,
+						key: `${event.eventId}-${meeting.day}-${meeting.startTime}-${meeting.endTime}`,
+						meetingCount: event.meetings.length,
+
+						title: `${event.courseCode}-${event.sectionCode}`,
+						description: `${event.courseTitle}`,
+
+						startDate,
+						endDate,
+						startTime,
+						endTime,
+
+						rowOffset: rowOffset,
+						columnOffset: columnOffset,
+						spanHeight: spanHeight,
+
+						color: event.color,
+
+						kind: "unlinked-course",
+						sectionCode: event.sectionCode,
+
+						credits: event.credits,
+
+						campus: meeting.campus,
+						building: meeting.building,
+						room: meeting.room,
+						instructors: meeting.instructors,
+					});
+				}
+				break;
+			}
+			case "personal": {
+				for (const meeting of event.meetings) {
+					const startDate = new Date(event.startDate);
+					const endDate = new Date(event.endDate);
+					const startTime = new Date(meeting.startTime);
+					const endTime = new Date(meeting.endTime);
+
+					if (startTime.getHours() >= endHour) continue;
+					if (endTime.getHours() < startHour) continue;
+
+					const columnOffset = determineCardColumnOffset(meeting.day);
+					const rowOffset = determineCardRowOffset(startTime);
+					const spanHeight = determineCardSpanHeight(startTime, endTime);
+
+					if (columnOffset === -1) continue;
+
+					structuredEvents.push({
+						id: event.eventId,
+						key: `${event.eventId}-${meeting.day}-${meeting.startTime}-${meeting.endTime}`,
+						meetingCount: event.meetings.length,
+
+						title: event.title,
+						description: event.description,
+
+						startDate,
+						endDate,
+						startTime,
+						endTime,
+
+						rowOffset: rowOffset,
+						columnOffset: columnOffset,
+						spanHeight: spanHeight,
+
+						color: event.color,
+
+						kind: "personal",
+						location: meeting.location,
+					});
+				}
+				break;
+			}
 		}
-	});
+	}
 
-	return transformedEvents;
+	return structuredEvents;
 }
 
 function roundMinutes(minutes: number) {
@@ -651,7 +713,7 @@ function roundMinutes(minutes: number) {
 	// ^ minutes rounded to nearest incr of slot (ie w/ 12 slots, mins will round to nearest multiple of 5)
 }
 
-function determineCardTimeOffset(time: Date) {
+function determineCardRowOffset(time: Date) {
 	const timeHour = time.getHours();
 	const timeMinutes = roundMinutes(time.getMinutes());
 
@@ -677,58 +739,24 @@ function determineCardSpanHeight(startTime: Date, endTime: Date) {
 	return hourSpan + minutesSpan;
 }
 
-function determineCardDayOffset(day: string) {
+function determineCardColumnOffset(day: string) {
 	switch (day) {
 		case "Sunday":
-		case "sun":
 			return 1;
 		case "Monday":
-		case "mon":
 			return 2;
 		case "Tuesday":
-		case "tue":
 			return 3;
 		case "Wednesday":
-		case "wed":
 			return 4;
 		case "Thursday":
-		case "thu":
 			return 5;
 		case "Friday":
-		case "fri":
 			return 6;
 		case "Saturday":
-		case "sat":
 			return 7;
 	}
 	return -1;
-}
-
-function determineCardDay(day: string) {
-	switch (day) {
-		case "Sunday":
-		case "sun":
-			return "sunday";
-		case "Monday":
-		case "mon":
-			return "monday";
-		case "Tuesday":
-		case "tue":
-			return "tuesday";
-		case "Wednesday":
-		case "wed":
-			return "wednesday";
-		case "Thursday":
-		case "thu":
-			return "thursday";
-		case "Friday":
-		case "fri":
-			return "friday";
-		case "Saturday":
-		case "sat":
-			return "saturday";
-	}
-	return "sunday";
 }
 
 function PrimaryText({

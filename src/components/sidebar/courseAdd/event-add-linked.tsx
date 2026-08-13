@@ -22,12 +22,12 @@ import type {
 } from "@/types/courses";
 import CourseAddList, { MeetingsDisplay } from "./course-add-list";
 
-type CourseAddQuickProps = {
+type EventAddLinkedProps = {
 	courses: CourseResponse;
 	setSelectedOption: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
+const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 	({ courses, setSelectedOption }, ref) => {
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
@@ -35,7 +35,7 @@ const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 		const [selectedColor, setSelectedColor] = useState<string>("#4285F4");
 
 		const tab = useUserStore((state) => state.getActiveTab());
-		const courseEventAdd = useUserStore((state) => state.addCourseEvent);
+		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
 		const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
@@ -44,10 +44,14 @@ const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 
 		const handleAddCourse = () => {
 			for (const course of selectedCourse) {
-				courseEventAdd(tab.id, {
+				eventAdd(tab.id, {
 					eventId: uuid(),
 					color: selectedColor,
-					...course,
+
+					kind: "linked-course",
+					courseId: course.course_id,
+					sectionId: course.section.section_id,
+					termCode: course.term_code,
 				});
 			}
 
@@ -205,5 +209,5 @@ const CourseAddQuick = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 	},
 );
 
-CourseAddQuick.displayName = "CourseAddQuick";
-export default CourseAddQuick;
+EventAddLinked.displayName = "EventAddLinked";
+export default EventAddLinked;
