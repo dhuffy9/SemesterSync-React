@@ -76,4 +76,30 @@ const ColorPicker = forwardRef<
 );
 ColorPicker.displayName = "ColorPicker";
 
-export { ColorPicker };
+const ColorPickerInners = forwardRef<
+	HTMLInputElement,
+	ColorPickerProps & { className?: string }
+>(({ value, onChange, onBlur, className, ...props }, forwardedRef) => {
+	const ref = useForwardedRef(forwardedRef);
+
+	const parsedValue = useMemo(() => {
+		return value || "#FFFFFF";
+	}, [value]);
+
+	return (
+		<div className={cn("flex flex-col gap-1", className)}>
+			<HexColorPicker color={parsedValue} onChange={onChange} />
+			<Input
+				maxLength={7}
+				onChange={(e) => {
+					onChange(e?.currentTarget?.value);
+				}}
+				ref={ref}
+				value={parsedValue}
+			/>
+		</div>
+	);
+});
+ColorPickerInners.displayName = "ColorPickerInners";
+
+export { ColorPicker, ColorPickerInners };

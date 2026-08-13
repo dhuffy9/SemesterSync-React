@@ -54,6 +54,10 @@ export interface UserActions {
 	addNonCourseEvent: (tabId: string, event: NonCourseEvent) => void;
 	updateNonCourseEvent: (tabId: string, event: NonCourseEvent) => void;
 
+	getEvent: (
+		tabId: string,
+		eventId: string,
+	) => CourseEvent | NonCourseEvent | undefined;
 	removeEvent: (tabId: string, eventId: string) => void;
 }
 
