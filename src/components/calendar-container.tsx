@@ -1,15 +1,23 @@
 "use client";
 
 import clsx from "clsx";
+import { Edit, Palette, Replace, Trash } from "lucide-react";
 import { Fragment } from "react/jsx-runtime";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
+import type { CourseResponse } from "@/types/courses";
 import type { EventCard, EventCardsObjectType } from "@/types/events";
 import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
 import {
 	ContextMenu,
 	ContextMenuContent,
 	ContextMenuItem,
+	ContextMenuRadioGroup,
+	ContextMenuRadioItem,
+	ContextMenuSeparator,
+	ContextMenuSub,
+	ContextMenuSubContent,
+	ContextMenuSubTrigger,
 	ContextMenuTrigger,
 } from "./ui/context-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
@@ -34,15 +42,13 @@ const days = [
 	{ long: "Saturday", short: "Sat" },
 ];
 
-export default function ClassList() {
+export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const unstructuredEvents = [
 		...(activeTab.courseEvents || []),
 		...(activeTab.nonCourseEvents || []),
 	];
 	const structuredEvents = transformEvents(unstructuredEvents);
-
-	console.log(structuredEvents);
 
 	const today = new Date();
 	const selectedDate = activeTab.selectedDate
@@ -154,8 +160,6 @@ export default function ClassList() {
 					structuredEvents[key as keyof EventCardsObjectType].map((event) => {
 						const d = new Date(firstDayOfWeek);
 						d.setDate(firstDayOfWeek.getDate() + i);
-
-						console.log(event);
 
 						if (d >= event.startDate && d <= event.endDate) {
 							return (
@@ -275,9 +279,34 @@ export default function ClassList() {
 											)}
 										</HoverCardContent>
 										<ContextMenuContent>
-											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
-											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
-											<ContextMenuItem disabled>Temp Item</ContextMenuItem>
+											<ContextMenuItem disabled>
+												<Edit /> Edit
+											</ContextMenuItem>
+
+											<ContextMenuItem disabled>
+												<Palette /> Change Color
+											</ContextMenuItem>
+
+											{event.isCourse && event.seatsTotal !== -1 && (
+												<ContextMenuSub>
+													<ContextMenuSubTrigger>
+														<Replace /> Swap Section
+													</ContextMenuSubTrigger>
+													<ContextMenuSubContent>
+														<ContextMenuRadioGroup>
+															<ContextMenuRadioItem value={"section1"}>
+																1
+															</ContextMenuRadioItem>
+														</ContextMenuRadioGroup>
+													</ContextMenuSubContent>
+												</ContextMenuSub>
+											)}
+
+											<ContextMenuSeparator />
+
+											<ContextMenuItem variant="destructive">
+												<Trash /> Delete
+											</ContextMenuItem>
 										</ContextMenuContent>
 									</ContextMenu>
 								</HoverCard>
@@ -351,6 +380,8 @@ function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
 					instructors: meeting.instructors.map((i) => {
 						return { firstName: i.first_name, lastName: i.last_name };
 					}),
+					courseId: event.course_id,
+					sectionId: event.section.section_id,
 				} as EventCard;
 
 				transformedEvents[determineCardDay(meeting.day)].push(eventGeneric);
@@ -451,7 +482,6 @@ function determineCardDayOffset(day: string) {
 }
 
 function determineCardDay(day: string) {
-	console.log(day);
 	switch (day) {
 		case "Sunday":
 		case "sun":

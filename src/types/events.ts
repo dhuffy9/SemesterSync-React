@@ -14,6 +14,8 @@ export type TransformedCourseEvent = {
 		firstName: string;
 		lastName: string;
 	}>;
+	courseId: number;
+	sectionId: number;
 };
 
 export type TransformedNonCourseEvent = {
