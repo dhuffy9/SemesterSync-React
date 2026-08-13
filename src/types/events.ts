@@ -27,6 +27,8 @@ export type TransformedNonCourseEvent = {
 
 export type EventCardGenerics = {
 	eventId: string;
+	eventKey: string;
+	eventMeetingCount: number;
 	startDate: Date;
 	endDate: Date;
 	startTime: Date;

@@ -2,12 +2,24 @@
 
 import clsx from "clsx";
 import { Edit, Palette, Replace, Trash } from "lucide-react";
+import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { CourseResponse } from "@/types/courses";
 import type { EventCard, EventCardsObjectType } from "@/types/events";
 import type { CourseEvent, NonCourseEvent } from "@/types/user-store";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogMedia,
+	AlertDialogTitle,
+} from "./ui/alert-dialog";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -22,6 +34,7 @@ import {
 } from "./ui/context-menu";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Separator } from "./ui/separator";
+import { toast } from "./ui/toast";
 
 const startHour = 6; // Inclusive, 6 AM
 const endHour = 23; // Exclusive, 11 PM (up until 22:59)
@@ -44,6 +57,7 @@ const days = [
 
 export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
+	const removeEvent = useUserStore((state) => state.removeEvent);
 	const unstructuredEvents = [
 		...(activeTab.courseEvents || []),
 		...(activeTab.nonCourseEvents || []),
@@ -58,6 +72,9 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const firstDayOfWeek = new Date(selectedDate);
 	firstDayOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 	// ^ sets day of month to the "selected day of month - # days from Sunday"
+
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [deleteModalEvent, setDeleteModalEvent] = useState<EventCard>();
 
 	return (
 		<div
@@ -163,7 +180,7 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 
 						if (d >= event.startDate && d <= event.endDate) {
 							return (
-								<HoverCard key={event.eventId}>
+								<HoverCard key={event.eventKey}>
 									<ContextMenu>
 										<HoverCardTrigger
 											render={
@@ -304,7 +321,21 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 
 											<ContextMenuSeparator />
 
-											<ContextMenuItem variant="destructive">
+											<ContextMenuItem
+												variant="destructive"
+												onClick={(e) => {
+													if (e.shiftKey) {
+														removeEvent(activeTab.id, event.eventId);
+														toast.add({
+															title: "Event Deleted Successfully",
+															type: "success",
+														});
+													} else {
+														setIsDeleteModalOpen(true);
+														setDeleteModalEvent(event);
+													}
+												}}
+											>
 												<Trash /> Delete
 											</ContextMenuItem>
 										</ContextMenuContent>
@@ -317,6 +348,59 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 					}),
 				)}
 			</div>
+
+			<AlertDialog open={isDeleteModalOpen}>
+				{deleteModalEvent && (
+					<AlertDialogContent size="sm">
+						<AlertDialogHeader>
+							<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+								<Trash />
+							</AlertDialogMedia>
+							<AlertDialogTitle>
+								Delete {deleteModalEvent.title}
+							</AlertDialogTitle>
+							<AlertDialogDescription>
+								You are about to delete this time slot
+								{deleteModalEvent.eventMeetingCount > 1 && (
+									<>
+										, and{" "}
+										<span className="font-bold">
+											{deleteModalEvent.eventMeetingCount - 1} other
+										</span>{" "}
+										associated time slot
+										{deleteModalEvent.eventMeetingCount > 2 && "s"}
+									</>
+								)}
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel
+								onClick={() => {
+									setDeleteModalEvent(undefined);
+									setIsDeleteModalOpen(false);
+								}}
+							>
+								Don't Delete
+							</AlertDialogCancel>
+							<AlertDialogAction
+								variant={"destructive"}
+								disabled={deleteModalEvent === undefined}
+								onClick={() => {
+									removeEvent(activeTab.id, deleteModalEvent.eventId);
+									setIsDeleteModalOpen(false);
+									setDeleteModalEvent(undefined);
+									toast.add({
+										title: "Event Deleted Successfully",
+										type: "success",
+									});
+								}}
+							>
+								Delete Event
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				)}
+			</AlertDialog>
 		</div>
 	);
 }
@@ -354,7 +438,9 @@ function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
 				if (determinedDayOffset === -1) return;
 
 				const eventGeneric = {
-					eventId: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
+					eventId: event.eventId,
+					eventKey: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
+					eventMeetingCount: event.section.meetings.length,
 					startDate: new Date(event.section.start_date),
 					endDate: new Date(event.section.end_date),
 					startTime,
@@ -398,7 +484,9 @@ function transformEvents(events: Array<CourseEvent | NonCourseEvent>) {
 				if (determinedDayOffset === -1) return;
 
 				const eventGeneric = {
-					eventId: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
+					eventId: event.eventId,
+					eventKey: `${event.eventId}-${meeting.id}-${meeting.day}-${meeting.start_time}-${meeting.end_time}`,
+					eventMeetingCount: event.meetings.length,
 					startDate: new Date(event.startDate),
 					endDate: new Date(event.endDate),
 					startTime,
