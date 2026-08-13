@@ -67,6 +67,7 @@ import {
 	type Meeting,
 	type MeetingAddType,
 } from "@/schemas/course-event";
+import type { Event, UnlinkedEventVariantMeeting } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
 import type {
 	AssembledCourseSingleSection,
@@ -86,14 +87,14 @@ const defaultColors = [
 	"#871663",
 ];
 
-type CourseAddQuickProps = {
+type EventAddUnlinkedProps = {
 	terms: TermResponse;
 	courses: CourseResponse;
 	setSelectedOption: React.Dispatch<React.SetStateAction<string>>;
 	closeParentModal: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
+const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 	({ terms, courses, setSelectedOption, closeParentModal }, ref) => {
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
@@ -109,6 +110,7 @@ const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 		const tab = useUserStore((state) => state.getActiveTab());
 		const term = useUserStore((state) => state.activeTerm);
 		const courseEventAdd = useUserStore((state) => state.addCourseEvent);
+		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
 		const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
@@ -138,6 +140,21 @@ const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 				const formData = values.value;
 
 				if (typeof terms === "number") return;
+
+				const newEvent: Event = {
+					eventId: uuidv4(),
+					color: formData.color,
+
+					kind: "unlinked-course",
+					startDate: formData.section.startDate,
+					endDate: formData.section.endDate,
+					courseTitle: formData.courseTitle,
+					courseCode: formData.courseCode,
+					sectionCode: formData.section.sectionCode,
+					credits: parseFloat(formData.credits),
+					deliveryMethod: formData.section.deliveryMethod,
+					meetings: [],
+				};
 
 				const courseEvent: CourseEvent = {
 					eventId: uuidv4(),
@@ -190,8 +207,24 @@ const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 						});
 					}
 				}
-
 				courseEvent.section.meetings = formattedMeetings;
+
+				const newFormattedMeetings: Array<UnlinkedEventVariantMeeting> = [];
+				for (const meeting of formData.section.meetings) {
+					for (const day of meeting.days) {
+						newFormattedMeetings.push({
+							day: day as UnlinkedEventVariantMeeting["day"],
+							startTime: new Date(`2026-08-13T${meeting.startTime}`),
+							endTime: new Date(`2026-08-13T${meeting.endTime}`),
+							campus: meeting.campus,
+							building: meeting.building,
+							room: meeting.room,
+							instructors: meeting.instructors,
+						});
+					}
+				}
+				newEvent.meetings = newFormattedMeetings;
+				eventAdd(tab.id, newEvent);
 
 				courseEventAdd(tab.id, courseEvent);
 				toast.add({
@@ -234,7 +267,7 @@ const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 			const formattedMeetings: Array<MeetingAddType> = [];
 			for (const meeting of meetings) {
 				formattedMeetings.push({
-					days: meeting.days.map((day) => day.toLowerCase().slice(0, 3)),
+					days: meeting.days,
 					startTime: meeting.start_time.toTimeString().slice(0, 5),
 					endTime: meeting.end_time.toTimeString().slice(0, 5),
 					campus: meeting.campus,
@@ -1138,25 +1171,25 @@ const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 																						"w-full justify-between rounded-md border border-border p-2 bg-background"
 																					}
 																				>
-																					<ToggleGroupItem value="mon">
+																					<ToggleGroupItem value="Monday">
 																						Mon
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="tue">
+																					<ToggleGroupItem value="Tuesday">
 																						Tue
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="wed">
+																					<ToggleGroupItem value="Wednesday">
 																						Wed
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="thu">
+																					<ToggleGroupItem value="Thursday">
 																						Thur
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="fri">
+																					<ToggleGroupItem value="Friday">
 																						Fri
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="sat">
+																					<ToggleGroupItem value="Saturday">
 																						Sat
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="sun">
+																					<ToggleGroupItem value="Sunday">
 																						Sun
 																					</ToggleGroupItem>
 																				</ToggleGroup>
@@ -1327,5 +1360,5 @@ const CourseAddManual = forwardRef<HTMLDivElement, CourseAddQuickProps>(
 	},
 );
 
-CourseAddManual.displayName = "CourseAddManual";
-export default CourseAddManual;
+EventAddUnlinked.displayName = "EventAddUnlinked";
+export default EventAddUnlinked;

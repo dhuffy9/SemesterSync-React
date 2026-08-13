@@ -1,6 +1,7 @@
 import { v4 as uuid } from "uuid";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { Event } from "@/schemas/events";
 import type {
 	CourseEvent,
 	NonCourseEvent,
@@ -13,6 +14,7 @@ import type {
 const defaultTab: Tab = {
 	id: uuid(),
 	name: `Schedule 1`,
+	events: [],
 	courseEvents: [],
 	nonCourseEvents: [],
 	totalCredits: 0,
@@ -41,6 +43,7 @@ const useUserStore = create<UserStore>()(
 						{
 							id: uuid(),
 							name: `Schedule ${get().tabs.length + 1}`,
+							events: [],
 							courseEvents: [],
 							nonCourseEvents: [],
 							totalCredits: 0,
@@ -171,6 +174,22 @@ const useUserStore = create<UserStore>()(
 				get()
 					.tabs.find((tab) => tab.id === tabId)
 					?.nonCourseEvents.find((event) => event.eventId === eventId),
+			getEvents: (tabId: string) =>
+				get().tabs.find((tab) => tab.id === tabId)?.events || [],
+			addEvent: (tabId: string, event: Event) => {
+				set({
+					tabs: get().tabs.map((tab) =>
+						tab.id === tabId
+							? {
+									...tab,
+									events: [...tab.events, event],
+								}
+							: tab,
+					),
+				});
+
+				get().recalculateTabCredits(tabId);
+			},
 			removeEvent: (tabId: string, eventId: string) => {
 				set({
 					// loop through all tabs, find with matching id
@@ -208,6 +227,18 @@ const useUserStore = create<UserStore>()(
 						// @ts-expect-error
 						persistedState.tabs[i].nonCourseEvents = [];
 					}
+
+					version += 1;
+				}
+
+				if (version === 2) {
+					// @ts-expect-error
+					for (let i = 0; i < persistedState.tabs.length; i++) {
+						// @ts-expect-error
+						persistedState.tabs[i].events = [];
+					}
+
+					version += 1;
 				}
 
 				return persistedState;

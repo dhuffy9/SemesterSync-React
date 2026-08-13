@@ -60,6 +60,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { TermResponse } from "@/data/terms";
 import { createSwipeRightVariant, TRANSITION } from "@/lib/animation";
 import { cn } from "@/lib/utils";
+import type { Event, PersonalEventVariantMeeting } from "@/schemas/events";
 import {
 	type NonCourseAddType,
 	type NonCourseMeeting,
@@ -80,13 +81,13 @@ const defaultColors = [
 	"#871663",
 ];
 
-type EventAddManualProps = {
+type EventAddPersonalProps = {
 	terms: TermResponse;
 	setSelectedOption: React.Dispatch<React.SetStateAction<string>>;
 	closeParentModal: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const EventAddManual = forwardRef<HTMLDivElement, EventAddManualProps>(
+const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 	({ terms, setSelectedOption, closeParentModal }, ref) => {
 		const [dateTemp, setDateTemp] = useState<DateRange | undefined>({
 			from: new Date(),
@@ -99,6 +100,7 @@ const EventAddManual = forwardRef<HTMLDivElement, EventAddManualProps>(
 		const tab = useUserStore((state) => state.getActiveTab());
 		const term = useUserStore((state) => state.activeTerm);
 		const nonCourseEventAdd = useUserStore((state) => state.addNonCourseEvent);
+		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
 		const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
@@ -124,6 +126,20 @@ const EventAddManual = forwardRef<HTMLDivElement, EventAddManualProps>(
 				const formData = values.value;
 
 				if (typeof terms === "number") return;
+
+				const newEvent: Event = {
+					eventId: uuidv4(),
+					color: formData.color,
+
+					kind: "personal",
+					startDate: formData.startDate,
+					endDate: formData.endDate,
+
+					title: formData.title,
+					description: formData.description,
+
+					meetings: [],
+				};
 
 				const event: NonCourseEvent = {
 					eventId: uuidv4(),
@@ -152,8 +168,21 @@ const EventAddManual = forwardRef<HTMLDivElement, EventAddManualProps>(
 						});
 					}
 				}
-
 				event.meetings = formattedMeetings;
+
+				const newFormattedMeetings: Array<PersonalEventVariantMeeting> = [];
+				for (const meeting of formData.meetings) {
+					for (const day of meeting.days) {
+						newFormattedMeetings.push({
+							day: day as PersonalEventVariantMeeting["day"],
+							startTime: new Date(`2026-08-13T${meeting.startTime}`),
+							endTime: new Date(`2026-08-13T${meeting.endTime}`),
+							location: meeting.location,
+						});
+					}
+				}
+				newEvent.meetings = newFormattedMeetings;
+				eventAdd(tab.id, newEvent);
 
 				nonCourseEventAdd(tab.id, event);
 				toast.add({
@@ -710,25 +739,25 @@ const EventAddManual = forwardRef<HTMLDivElement, EventAddManualProps>(
 																						"w-full justify-between rounded-md border border-border p-2 bg-background"
 																					}
 																				>
-																					<ToggleGroupItem value="mon">
+																					<ToggleGroupItem value="Monday">
 																						Mon
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="tue">
+																					<ToggleGroupItem value="Tuesday">
 																						Tue
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="wed">
+																					<ToggleGroupItem value="Wednesday">
 																						Wed
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="thu">
+																					<ToggleGroupItem value="Thursday">
 																						Thur
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="fri">
+																					<ToggleGroupItem value="Friday">
 																						Fri
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="sat">
+																					<ToggleGroupItem value="Saturday">
 																						Sat
 																					</ToggleGroupItem>
-																					<ToggleGroupItem value="sun">
+																					<ToggleGroupItem value="Sunday">
 																						Sun
 																					</ToggleGroupItem>
 																				</ToggleGroup>
@@ -892,5 +921,5 @@ const EventAddManual = forwardRef<HTMLDivElement, EventAddManualProps>(
 	},
 );
 
-EventAddManual.displayName = "EventAddManual";
-export default EventAddManual;
+EventAddPersonal.displayName = "EventAddPersonal";
+export default EventAddPersonal;

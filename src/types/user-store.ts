@@ -1,5 +1,6 @@
 import z from "zod";
 import { assembledCourseSingleSectionSchema } from "@/schemas/course-event";
+import { type Event, eventSchema } from "@/schemas/events";
 import { nonCourseEventSchema } from "@/schemas/non-course-event";
 
 export const termSchema = z.object({
@@ -9,6 +10,7 @@ export const termSchema = z.object({
 export const userTabSchema = z.object({
 	id: z.uuidv4(),
 	name: z.string(),
+	events: z.array(eventSchema),
 	courseEvents: z.array(assembledCourseSingleSectionSchema),
 	nonCourseEvents: z.array(nonCourseEventSchema),
 	totalCredits: z.number(),
@@ -58,6 +60,8 @@ export interface UserActions {
 		tabId: string,
 		eventId: string,
 	) => CourseEvent | NonCourseEvent | undefined;
+	getEvents: (tabId: string) => Array<Event>;
+	addEvent: (tabId: string, event: Event) => void;
 	removeEvent: (tabId: string, eventId: string) => void;
 }
 

@@ -17,16 +17,16 @@ import type { TermResponse } from "@/data/terms";
 import { crateSwipeLeftVariant, TRANSITION } from "@/lib/animation";
 import { cn } from "@/lib/utils";
 import type { CourseResponse } from "@/types/courses";
-import CourseAddManual from "./course-add-manual";
-import CourseAddQuick from "./course-add-quick";
-import EventAddManual from "./event-add-manual";
+import EventAddLinked from "./event-add-linked";
+import EventAddPersonal from "./event-add-personal";
+import EventAddUnlinked from "./event-add-unlinked";
 
 const selectOptions = [
 	{
 		title: "Add Course-Linked Event",
 		description:
 			"Linked events are events for courses on your calendar that will automatically update with the latest information from the course catalog.",
-		key: "quick",
+		key: "linked",
 		recommended: true,
 	},
 	{
@@ -40,7 +40,7 @@ const selectOptions = [
 		title: "Add Non-Course Event",
 		description:
 			"Ability to add non-course events for personal time, such as when you have work, these require less information.",
-		key: "event",
+		key: "personal",
 		recommended: false,
 	},
 ];
@@ -112,15 +112,15 @@ export default function EventAddModalClient({
 							</motion.div>
 						)}
 
-						{selectedOption === "quick" && (
-							<CourseAddQuick
+						{selectedOption === "linked" && (
+							<EventAddLinked
 								courses={courses}
 								setSelectedOption={setSelectedOption}
 							/>
 						)}
 
 						{selectedOption === "manual" && (
-							<CourseAddManual
+							<EventAddUnlinked
 								terms={termsRes}
 								courses={courses}
 								setSelectedOption={setSelectedOption}
@@ -128,8 +128,8 @@ export default function EventAddModalClient({
 							/>
 						)}
 
-						{selectedOption === "event" && (
-							<EventAddManual
+						{selectedOption === "personal" && (
+							<EventAddPersonal
 								terms={termsRes}
 								setSelectedOption={setSelectedOption}
 								closeParentModal={setModalContentShown}
