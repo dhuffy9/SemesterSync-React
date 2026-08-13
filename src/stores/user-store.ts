@@ -176,10 +176,7 @@ const useUserStore = create<UserStore>()(
 			getEvent: (tabId, eventId) =>
 				get()
 					.tabs.find((tab) => tab.id === tabId)
-					?.courseEvents.find((event) => event.eventId === eventId) ||
-				get()
-					.tabs.find((tab) => tab.id === tabId)
-					?.nonCourseEvents.find((event) => event.eventId === eventId),
+					?.events.find((event) => event.eventId === eventId),
 			getEvents: (tabId: string) =>
 				get().tabs.find((tab) => tab.id === tabId)?.events || EMPTY_EVENT_ARR,
 			addEvent: (tabId: string, event: Event) => {
@@ -196,6 +193,23 @@ const useUserStore = create<UserStore>()(
 
 				get().recalculateTabCredits(tabId);
 			},
+			updateEvent: (tabId: string, event: Event) => {
+				set({
+					// loop through all tabs, find with matching id
+					tabs: get().tabs.map((tab) =>
+						tab.id === tabId
+							? {
+									...tab,
+									events: tab.events.map((e) =>
+										e.eventId === event.eventId ? event : e,
+									),
+								}
+							: tab,
+					),
+				});
+
+				get().recalculateTabCredits(tabId);
+			},
 			removeEvent: (tabId: string, eventId: string) => {
 				set({
 					// loop through all tabs, find with matching id
@@ -203,12 +217,7 @@ const useUserStore = create<UserStore>()(
 						tab.id === tabId
 							? {
 									...tab, // loop through all courses & remove the one with matching id
-									courseEvents: tab.courseEvents.filter(
-										(c) => c.eventId !== eventId,
-									),
-									nonCourseEvents: tab.nonCourseEvents.filter(
-										(c) => c.eventId !== eventId,
-									),
+									events: tab.events.filter((c) => c.eventId !== eventId),
 								}
 							: tab,
 					),
