@@ -27,6 +27,8 @@ const initialState: UserState = {
 	tabs: [defaultTab],
 };
 
+const EMPTY_EVENT_ARR: Array<Event> = [];
+
 const useUserStore = create<UserStore>()(
 	persist(
 		// stores to localstorage whenever a state change is made
@@ -175,7 +177,7 @@ const useUserStore = create<UserStore>()(
 					.tabs.find((tab) => tab.id === tabId)
 					?.nonCourseEvents.find((event) => event.eventId === eventId),
 			getEvents: (tabId: string) =>
-				get().tabs.find((tab) => tab.id === tabId)?.events || [],
+				get().tabs.find((tab) => tab.id === tabId)?.events || EMPTY_EVENT_ARR,
 			addEvent: (tabId: string, event: Event) => {
 				set({
 					tabs: get().tabs.map((tab) =>

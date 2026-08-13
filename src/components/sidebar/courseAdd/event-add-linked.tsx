@@ -58,6 +58,7 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 					kind: "linked-course",
 					courseId: course.course_id,
 					sectionId: course.section.section_id,
+					termCode: course.term_code,
 				});
 			}
 

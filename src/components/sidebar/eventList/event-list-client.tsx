@@ -3,18 +3,21 @@
 import clsx from "clsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { cn, mergeMeetings, singleLetterDay } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
+import type { CourseResponse } from "@/types/courses";
+import type { MergedMeeting } from "@/types/meetings";
 
-export default function ClassList() {
-	const tab = useUserStore((state) =>
-		state.tabs.find((tab) => tab.id === state.activeTab),
-	);
-	const tabEvents = [
-		...(tab?.courseEvents || []),
-		...(tab?.nonCourseEvents || []),
-	];
+export default function EventListClient({
+	courses,
+}: {
+	courses: CourseResponse;
+}) {
 	const credits = useUserStore((state) => state.getActiveTabCredits());
+	const term = useUserStore((state) => state.activeTerm);
+	const events = useUserStore((state) => state.getEvents(state.activeTab));
+
+	if (typeof courses === "number") return <p>Error loading courses</p>;
 
 	return (
 		<div className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -37,29 +40,67 @@ export default function ClassList() {
 					<Separator orientation="vertical" className="h-6" />
 					<p className="text-sm text-muted-foreground">
 						Classes:{" "}
-						<span className="font-bold text-foreground">
-							{tabEvents.length}
-						</span>
+						<span className="font-bold text-foreground">{events.length}</span>
 					</p>
 				</div>
 			</div>
 
 			<ScrollArea className="flex-1 min-h-0 w-full">
 				<div className="py-1 space-y-2">
-					{tabEvents.map((event) => {
+					{events.map((event) => {
 						const cardObject = {
 							color: event.color,
 							eventId: event.eventId,
 						} as ClassCardData;
 
-						if ("section" in event) {
-							cardObject.title = `${event.course_code}-${event.section.section_code}`;
-							cardObject.description = `${event.course_title}`;
-							cardObject.meetings = mergeMeetings(event.section.meetings);
-						} else {
-							cardObject.title = event.title;
-							cardObject.description = event.description || "";
-							cardObject.meetings = mergeMeetings(event.meetings);
+						switch (event.kind) {
+							case "linked-course": {
+								if (event.termCode !== term) return null;
+								const courseData = courses[term].find(
+									(course) => course.course_id === event.courseId,
+								);
+								if (!courseData) return <p>Course not found !!</p>;
+
+								const sectionData = courseData.sections.find(
+									(section) => section.section_id === event.sectionId,
+								);
+								if (!sectionData) return <p>Section not found !!</p>;
+
+								cardObject.title = `${courseData.course_code}-${sectionData.section_code}`;
+								cardObject.description = `${courseData.course_title}`;
+
+								const tempMeetings = [] as {
+									day: string;
+									startTime: string;
+									endTime: string;
+								}[];
+								for (const meeting of sectionData.meetings) {
+									const startTime = new Date(
+										`2026-08-13T${meeting.start_time}`,
+									).toString();
+									const endTime = new Date(
+										`2026-08-13T${meeting.end_time}`,
+									).toString();
+									tempMeetings.push({
+										day: meeting.day,
+										startTime,
+										endTime,
+									});
+								}
+								cardObject.meetings = mergeMeetings(tempMeetings);
+
+								break;
+							}
+							case "unlinked-course":
+								cardObject.title = `${event.courseCode}-${event.sectionCode}`;
+								cardObject.description = event.courseTitle;
+								cardObject.meetings = mergeMeetings(event.meetings);
+								break;
+							case "personal":
+								cardObject.title = event.title;
+								cardObject.description = event.description || "";
+								cardObject.meetings = mergeMeetings(event.meetings);
+								break;
 						}
 
 						return (
@@ -75,18 +116,12 @@ export default function ClassList() {
 	);
 }
 
-type ClassCardDataMeeting = {
-	days: string;
-	startTime: Date;
-	endTime: Date;
-};
-
 type ClassCardData = {
 	eventId: string;
 	title: string;
 	description: string;
 	color: string;
-	meetings: Array<ClassCardDataMeeting>;
+	meetings: Array<MergedMeeting>;
 };
 
 function ClassCard({ data }: { data: ClassCardData }) {
@@ -109,7 +144,7 @@ function ClassCard({ data }: { data: ClassCardData }) {
 						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
 						className="flex flex-row items-center gap-1 text-sm"
 					>
-						<p>{meeting.days}:</p>
+						<p>{meeting.days.map((day) => singleLetterDay(day)).join("")}:</p>
 						<p>
 							{meeting.startTime.toLocaleTimeString("en-US", {
 								hour12: true,
@@ -130,58 +165,4 @@ function ClassCard({ data }: { data: ClassCardData }) {
 			</div>
 		</div>
 	);
-}
-
-function mergeMeetings(meetings: Array<object>) {
-	const newMeetings = [] as Array<ClassCardDataMeeting>;
-
-	for (const meeting of meetings) {
-		if (
-			"day" in meeting &&
-			typeof meeting.day === "string" &&
-			"start_time" in meeting &&
-			"end_time" in meeting
-		) {
-			if (newMeetings.length === 0) {
-				newMeetings.push({
-					days:
-						meeting.day === "thu" || meeting.day === "Thursday"
-							? "R"
-							: meeting.day.slice(0, 1).toUpperCase(),
-					startTime: new Date(`2026-08-10T${meeting.start_time}`),
-					endTime: new Date(`2026-08-10T${meeting.end_time}`),
-				});
-			} else {
-				let found = false;
-
-				for (const meetingItem of newMeetings) {
-					const newStartTime = new Date(`2026-08-10T${meeting.start_time}`);
-					const newEndTime = new Date(`2026-08-10T${meeting.end_time}`);
-
-					if (
-						meetingItem.startTime.getTime() === newStartTime.getTime() &&
-						meetingItem.endTime.getTime() === newEndTime.getTime()
-					) {
-						meetingItem.days +=
-							meeting.day === "thu" || meeting.day === "Thursday"
-								? "R"
-								: meeting.day.slice(0, 1).toUpperCase();
-
-						found = true;
-						break;
-					}
-				}
-
-				if (!found) {
-					newMeetings.push({
-						days: meeting.day.slice(0, 1).toUpperCase(),
-						startTime: new Date(`2026-08-10T${meeting.start_time}`),
-						endTime: new Date(`2026-08-10T${meeting.end_time}`),
-					});
-				}
-			}
-		}
-	}
-
-	return newMeetings;
 }

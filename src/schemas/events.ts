@@ -1,4 +1,5 @@
 import z from "zod";
+import { daysOfWeekSchema } from "./util";
 
 // Generic
 export const eventGenericsSchema = z.object({
@@ -13,19 +14,12 @@ export const linkedEventSchema = z.object({
 
 	courseId: z.number(),
 	sectionId: z.number(),
+	termCode: z.string(),
 });
 
 //Unlinked Event
 export const unlinkedEventMeetingSchema = z.object({
-	day: z.enum([
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-		"Sunday",
-	]),
+	day: daysOfWeekSchema,
 	startTime: z.date(),
 	endTime: z.date(),
 
@@ -58,15 +52,7 @@ export const unlinkedEventSchema = z.object({
 
 //Personal Event
 export const personalEventMeetingSchema = z.object({
-	day: z.enum([
-		"Monday",
-		"Tuesday",
-		"Wednesday",
-		"Thursday",
-		"Friday",
-		"Saturday",
-		"Sunday",
-	]),
+	day: daysOfWeekSchema,
 	startTime: z.date(),
 	endTime: z.date(),
 
