@@ -15,6 +15,8 @@ export const linkedEventSchema = z.object({
 	courseId: z.number(),
 	sectionId: z.number(),
 	termCode: z.string(),
+
+	staticCourseCredits: z.number(),
 });
 
 //Unlinked Event

@@ -52,6 +52,8 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 					courseId: course.course_id,
 					sectionId: course.section.section_id,
 					termCode: course.term_code,
+
+					staticCourseCredits: parseFloat(course.credits),
 				});
 			}
 

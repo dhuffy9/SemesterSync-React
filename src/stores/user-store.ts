@@ -72,9 +72,10 @@ const useUserStore = create<UserStore>()(
 									...tab, // update credits by looping through all courses and adding up credits
 									totalCredits: tab.events.reduce(
 										(acc, course) => {
+											console.log(course);
 											switch (course.kind) {
 												case "linked-course":
-													return acc + 3; //FIXME - Need to replace this after updating how course data is distributed through app
+													return acc + course.staticCourseCredits;
 												case "unlinked-course":
 													return acc + course.credits;
 												default:
