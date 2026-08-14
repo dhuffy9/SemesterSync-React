@@ -40,8 +40,6 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 		const shouldReduceMotion = useReducedMotion();
 		const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
 
-		console.log(selectedCourse);
-
 		const handleAddCourse = () => {
 			for (const course of selectedCourse) {
 				eventAdd(tab.id, {

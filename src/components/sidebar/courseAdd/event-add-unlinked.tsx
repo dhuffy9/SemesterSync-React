@@ -185,7 +185,6 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 		}, [dateTemp, form.setFieldValue]);
 
 		useEffect(() => {
-			console.log(selectedCourse);
 			if (selectedCourse.length !== 1) return;
 
 			const course = selectedCourse[0];

@@ -16,8 +16,6 @@ export function singleLetterDay(day: string) {
 export function mergeMeetings(meetings: Array<object>) {
 	const newMeetings = [] as Array<MergedMeeting>;
 
-	console.log(meetings);
-
 	for (const meeting of meetings) {
 		if (
 			"day" in meeting &&
