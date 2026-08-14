@@ -71,7 +71,7 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 				className="flex flex-col gap-2"
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
-					<p>Quick Add</p>
+					<p>Add Linked Course Event</p>
 					<Button
 						onClick={() => {
 							setSelectedOption("none");

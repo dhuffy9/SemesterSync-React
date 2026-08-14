@@ -38,7 +38,7 @@ const selectOptions = [
 		recommended: false,
 	},
 	{
-		title: "Add Non-Course Event",
+		title: "Add Personal Event",
 		description:
 			"Ability to add non-course events for personal time, such as when you have work, these require less information.",
 		key: "personal",
@@ -121,7 +121,7 @@ export default function EventAddModalClient({
 											whileTap={{ scale: shouldReduceMotion ? 1 : 0.98 }}
 										>
 											{option.recommended && (
-												<div className="absolute -top-1.5 right-0 bg-primary text-primary-foreground rounded-lg p-1 text-sm">
+												<div className="absolute -top-1 right-0 bg-primary text-primary-foreground rounded-b-lg p-1 text-sm">
 													Recommended
 												</div>
 											)}

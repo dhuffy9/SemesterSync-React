@@ -181,7 +181,7 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 				className="flex flex-col gap-2"
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
-					<p>Non-course Manual Add</p>
+					<p>Add Personal Event</p>
 					<AlertDialog open={isBackResetModalOpen}>
 						<AlertDialogTrigger
 							render={<Button variant="secondary" />}

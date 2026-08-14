@@ -236,7 +236,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 				className="flex flex-col gap-2"
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
-					<p>Manual Add</p>
+					<p>Add Course Event Manually</p>
 					<AlertDialog open={isBackResetModalOpen}>
 						<AlertDialogTrigger
 							render={<Button variant="secondary" />}
