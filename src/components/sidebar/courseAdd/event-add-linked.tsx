@@ -1,9 +1,21 @@
 "use client";
 import clsx from "clsx";
-import { ArrowLeft, PlusIcon } from "lucide-react";
+import { ArrowLeft, PlusIcon, RotateCw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useState } from "react";
 import { v4 as uuid } from "uuid";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogMedia,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import {
@@ -25,14 +37,16 @@ import CourseAddList, { MeetingsDisplay } from "./course-add-list";
 type EventAddLinkedProps = {
 	courses: CourseResponse;
 	setSelectedOption: React.Dispatch<React.SetStateAction<string>>;
+	closeParentModal: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
-	({ courses, setSelectedOption }, ref) => {
+	({ courses, setSelectedOption, closeParentModal }, ref) => {
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
 		>([]);
 		const [selectedColor, setSelectedColor] = useState<string>("#4285F4");
+		const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
 		const tab = useUserStore((state) => state.getActiveTab());
 		const eventAdd = useUserStore((state) => state.addEvent);
@@ -72,15 +86,61 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Linked Course Event</p>
-					<Button
-						onClick={() => {
-							setSelectedOption("none");
-							setSelectedCourse([]);
-						}}
-						variant="secondary"
-					>
-						<ArrowLeft /> Back
-					</Button>
+					<AlertDialog open={isResetModalOpen}>
+						<AlertDialogTrigger
+							render={
+								<Button
+									variant={
+										selectedCourse.length === 0 ? "secondary" : "destructive"
+									}
+									onClick={() => {
+										if (selectedCourse.length === 0) {
+											setSelectedOption("none");
+											setSelectedCourse([]);
+										} else {
+											setIsResetModalOpen(true);
+											closeParentModal(true);
+										}
+									}}
+								/>
+							}
+						>
+							<ArrowLeft /> Back
+						</AlertDialogTrigger>
+						<AlertDialogContent size="sm">
+							<AlertDialogHeader>
+								<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+									<RotateCw />
+								</AlertDialogMedia>
+								<AlertDialogTitle>Reset Selected Courses</AlertDialogTitle>
+								<AlertDialogDescription>
+									Going back will clear the selected courses, are you sure you
+									would like to proceed?
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel
+									onClick={() => {
+										setIsResetModalOpen(false);
+										closeParentModal(false);
+									}}
+								>
+									Cancel
+								</AlertDialogCancel>
+								<AlertDialogAction
+									variant="destructive"
+									onClick={() => {
+										setIsResetModalOpen(false);
+										closeParentModal(false);
+										setSelectedCourse([]);
+										setTimeout(() => setSelectedOption("none"), 150);
+									}}
+								>
+									Proceed & Reset
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				</div>
 
 				<div className="flex flex-col gap-2 rounded-md border border-border p-2">
