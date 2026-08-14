@@ -115,14 +115,14 @@ export default function CourseAddList({
 	if (typeof courses === "number")
 		return (
 			<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">
-				Error Loading Courses
+				Error Loading Courses | NaN
 			</p>
 		);
 
 	if (coursesByTerm.length === 0)
 		return (
 			<p className="text-destructive bg-destructive/20 rounded-lg text-xs py-2 w-full text-center">
-				Error Loading Courses
+				No classes in the selected term. Are you sure you selected one?
 			</p>
 		);
 
