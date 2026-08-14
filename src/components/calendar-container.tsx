@@ -315,7 +315,15 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 									) : (
 										<p>
 											<PrimaryText>Location: </PrimaryText>
-											{event.location}
+											<span
+												className={
+													event.location ? "" : "italic text-muted-foreground"
+												}
+											>
+												{event.location
+													? event.location
+													: "No location provided"}
+											</span>
 										</p>
 									)}
 								</HoverCardContent>
