@@ -1,6 +1,6 @@
 "use client";
 import clsx from "clsx";
-import { ArrowLeft, PlusIcon, RotateCw } from "lucide-react";
+import { ArrowLeft, Palette, PlusIcon, RotateCw } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useState } from "react";
 import { v4 as uuid } from "uuid";
@@ -25,6 +25,11 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { createSwipeRightVariant, TRANSITION } from "@/lib/animation";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
@@ -247,13 +252,29 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 								credits
 							</Button>
 
-							<ColorPicker
-								className="size-8"
-								value={selectedColor}
-								onChange={(v) =>
-									setSelectedColor(typeof v === "string" ? v : v.target.value)
-								}
-							/>
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<ColorPicker
+											className="size-8 p-2"
+											value={selectedColor}
+											onChange={(v) =>
+												setSelectedColor(
+													typeof v === "string" ? v : v.target.value,
+												)
+											}
+										>
+											<Palette
+												className="size-3.5"
+												style={{
+													color: `contrast-color(${selectedColor})`,
+												}}
+											/>
+										</ColorPicker>
+									}
+								/>
+								<TooltipContent>Select Color</TooltipContent>
+							</Tooltip>
 						</div>
 					</div>
 				</div>
