@@ -3,6 +3,11 @@
 import clsx from "clsx";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn, mergeMeetings, singleLetterDay } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { CourseResponse } from "@/types/courses";
@@ -144,7 +149,14 @@ function ClassCard({ data }: { data: ClassCardData }) {
 						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
 						className="flex flex-row items-center gap-1 text-sm"
 					>
-						<p>{meeting.days.map((day) => singleLetterDay(day)).join("")}:</p>
+						<Tooltip>
+							<TooltipTrigger>
+								<p>
+									{meeting.days.map((day) => singleLetterDay(day)).join("")}:
+								</p>
+							</TooltipTrigger>
+							<TooltipContent>{meeting.days.join(", ")}</TooltipContent>
+						</Tooltip>
 						<p>
 							{meeting.startTime.toLocaleTimeString("en-US", {
 								hour12: true,
