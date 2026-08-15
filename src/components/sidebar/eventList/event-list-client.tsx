@@ -169,6 +169,7 @@ function ClassCard({ data }: { data: ClassCardData }) {
 	const removeEvent = useUserStore((state) => state.removeEvent);
 
 	const [hoverCardOpen, setHoverCardOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	return (
@@ -267,7 +268,10 @@ function ClassCard({ data }: { data: ClassCardData }) {
 					</AlertDialogContent>
 				</AlertDialog>
 
-				<AlertDialog>
+				<AlertDialog
+					open={isDeleteModalOpen}
+					onOpenChange={setIsDeleteModalOpen}
+				>
 					<Tooltip>
 						<AlertDialogTrigger
 							render={
@@ -277,6 +281,17 @@ function ClassCard({ data }: { data: ClassCardData }) {
 									<Trash />
 								</TooltipTrigger>
 							}
+							onClick={(e) => {
+								if (e.shiftKey) {
+									removeEvent(activeTab.id, data.eventId);
+									toast.add({
+										title: "Event Deleted Successfully",
+										type: "success",
+									});
+								} else {
+									setIsDeleteModalOpen(true);
+								}
+							}}
 						/>
 						<TooltipContent side="right">Delete</TooltipContent>
 					</Tooltip>
