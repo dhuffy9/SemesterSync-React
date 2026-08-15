@@ -1,8 +1,29 @@
 "use client";
 
 import clsx from "clsx";
+import { Edit, Palette, Trash } from "lucide-react";
+import { useState } from "react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogMedia,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/toast";
 import {
 	Tooltip,
 	TooltipContent,
@@ -51,7 +72,7 @@ export default function EventListClient({
 			</div>
 
 			<ScrollArea className="flex-1 min-h-0 w-full">
-				<div className="py-1 space-y-2">
+				<div className="py-1 flex flex-col gap-2">
 					{events.map((event) => {
 						const cardObject = {
 							color: event.color,
@@ -130,51 +151,127 @@ type ClassCardData = {
 };
 
 function ClassCard({ data }: { data: ClassCardData }) {
+	const activeTab = useUserStore((state) => state.getActiveTab());
+	const removeEvent = useUserStore((state) => state.removeEvent);
+
+	const [hoverCardOpen, setHoverCardOpen] = useState(false);
+
 	return (
-		<div
-			className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"
-			style={{
-				borderLeftColor: data.color,
-				background: `color-mix(in oklab, ${data.color} 20%, transparent)`,
-			}}
-		>
-			<p>{data.title}</p>
-			<p className="text-sm">{data.description}</p>
+		<HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
+			<HoverCardTrigger delay={0} closeDelay={0}>
+				<div
+					className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"
+					style={{
+						borderLeftColor: data.color,
+						background: `color-mix(in oklab, ${data.color} 20%, transparent)`,
+					}}
+				>
+					<p>{data.title}</p>
+					<p className="text-sm">{data.description}</p>
 
-			<Separator className="bg-black/20" />
+					<Separator className="bg-black/20" />
 
-			<div>
-				{data.meetings.map((meeting) => (
-					<div
-						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
-						className="flex flex-row items-center gap-1 text-sm"
-					>
-						<Tooltip>
-							<TooltipTrigger>
+					<div>
+						{data.meetings.map((meeting) => (
+							<div
+								key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
+								className="flex flex-row items-center gap-1 text-sm"
+							>
+								<Tooltip>
+									<TooltipTrigger>
+										<p>
+											{meeting.days.map((day) => singleLetterDay(day)).join("")}
+											:
+										</p>
+									</TooltipTrigger>
+									<TooltipContent>{meeting.days.join(", ")}</TooltipContent>
+								</Tooltip>
 								<p>
-									{meeting.days.map((day) => singleLetterDay(day)).join("")}:
+									{meeting.startTime.toLocaleTimeString("en-US", {
+										hour12: true,
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
 								</p>
-							</TooltipTrigger>
-							<TooltipContent>{meeting.days.join(", ")}</TooltipContent>
-						</Tooltip>
-						<p>
-							{meeting.startTime.toLocaleTimeString("en-US", {
-								hour12: true,
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-						<span className="text-muted-foreground">to</span>
-						<p>
-							{meeting.endTime.toLocaleTimeString("en-US", {
-								hour12: true,
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
+								<span className="text-muted-foreground">to</span>
+								<p>
+									{meeting.endTime.toLocaleTimeString("en-US", {
+										hour12: true,
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
+								</p>
+							</div>
+						))}
 					</div>
-				))}
-			</div>
-		</div>
+				</div>
+			</HoverCardTrigger>
+			<HoverCardContent
+				side="right"
+				align="center"
+				className={"w-max flex flex-col gap-1"}
+			>
+				<Tooltip>
+					<TooltipTrigger
+						render={<Button variant="secondary" size="icon" disabled />}
+					>
+						<Edit />
+					</TooltipTrigger>
+					<TooltipContent side="right">Edit</TooltipContent>
+				</Tooltip>
+
+				<Tooltip>
+					<TooltipTrigger render={<Button variant="secondary" size="icon" />}>
+						<Palette />
+					</TooltipTrigger>
+					<TooltipContent side="right">Change Color</TooltipContent>
+				</Tooltip>
+
+				<AlertDialog>
+					<Tooltip>
+						<AlertDialogTrigger
+							render={
+								<TooltipTrigger
+									render={<Button variant="destructive" size="icon" />}
+								>
+									<Trash />
+								</TooltipTrigger>
+							}
+						/>
+						<TooltipContent side="right">Delete</TooltipContent>
+					</Tooltip>
+					<AlertDialogContent size="sm">
+						<AlertDialogHeader>
+							<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+								<Trash />
+							</AlertDialogMedia>
+							<AlertDialogTitle>Delete {data.title}</AlertDialogTitle>
+							<AlertDialogDescription>
+								You are about to delete this event with{" "}
+								<b>{data.meetings.length} meetings</b>
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel onClick={() => setHoverCardOpen(false)}>
+								Don't Delete
+							</AlertDialogCancel>
+							<AlertDialogAction
+								variant={"destructive"}
+								onClick={() => {
+									removeEvent(activeTab.id, data.eventId);
+									toast.add({
+										title: "Event Deleted Successfully",
+										type: "success",
+									});
+									setHoverCardOpen(false);
+								}}
+							>
+								Delete Event
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+			</HoverCardContent>
+		</HoverCard>
 	);
 }
