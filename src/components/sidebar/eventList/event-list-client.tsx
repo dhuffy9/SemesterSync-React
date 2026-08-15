@@ -174,52 +174,7 @@ function ClassCard({ data }: { data: ClassCardData }) {
 	return (
 		<HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
 			<HoverCardTrigger delay={0} closeDelay={0}>
-				<div
-					className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"
-					style={{
-						borderLeftColor: data.color,
-						background: `color-mix(in oklab, ${data.color} 20%, transparent)`,
-					}}
-				>
-					<p>{data.title}</p>
-					<p className="text-sm">{data.description}</p>
-
-					<Separator className="bg-black/20" />
-
-					<div>
-						{data.meetings.map((meeting) => (
-							<div
-								key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
-								className="flex flex-row items-center gap-1 text-sm"
-							>
-								<Tooltip>
-									<TooltipTrigger>
-										<p>
-											{meeting.days.map((day) => singleLetterDay(day)).join("")}
-											:
-										</p>
-									</TooltipTrigger>
-									<TooltipContent>{meeting.days.join(", ")}</TooltipContent>
-								</Tooltip>
-								<p>
-									{meeting.startTime.toLocaleTimeString("en-US", {
-										hour12: true,
-										hour: "2-digit",
-										minute: "2-digit",
-									})}
-								</p>
-								<span className="text-muted-foreground">to</span>
-								<p>
-									{meeting.endTime.toLocaleTimeString("en-US", {
-										hour12: true,
-										hour: "2-digit",
-										minute: "2-digit",
-									})}
-								</p>
-							</div>
-						))}
-					</div>
-				</div>
+				<ClassCardUI data={data} />
 			</HoverCardTrigger>
 			<HoverCardContent
 				side="right"
@@ -305,64 +260,8 @@ function ClassCard({ data }: { data: ClassCardData }) {
 							<Separator orientation="vertical" />
 							<div className="flex-1 flex flex-col gap-2">
 								<h2 className="font-bold">Event Preview:</h2>
-								<div
-									className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
-									style={{
-										backgroundColor: `color-mix(in oklab, ${selectedColor} 20%, transparent)`,
-										borderColor: selectedColor,
-									}}
-								>
-									<div className="flex flex-col gap-2">
-										<p>{data.title}</p>
-										<p
-											className={clsx("text-sm", {
-												"italic text-muted-foreground": !data.description,
-											})}
-										>
-											{data.description ? data.description : "No Description"}
-										</p>
 
-										<Separator className="bg-black/20" />
-
-										<div>
-											{data.meetings.map((meeting) => (
-												<div
-													key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
-													className="flex flex-row items-center gap-1 text-sm"
-												>
-													<Tooltip>
-														<TooltipTrigger>
-															<p>
-																{meeting.days
-																	.map((day) => singleLetterDay(day))
-																	.join("")}
-																:
-															</p>
-														</TooltipTrigger>
-														<TooltipContent>
-															{meeting.days.join(", ")}
-														</TooltipContent>
-													</Tooltip>
-													<p>
-														{meeting.startTime.toLocaleTimeString("en-US", {
-															hour12: true,
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</p>
-													<span className="text-muted-foreground">to</span>
-													<p>
-														{meeting.endTime.toLocaleTimeString("en-US", {
-															hour12: true,
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</p>
-												</div>
-											))}
-										</div>
-									</div>
-								</div>
+								<ClassCardUI data={{ ...data, color: selectedColor }} />
 							</div>
 						</div>
 					</AlertDialogContent>
@@ -414,5 +313,55 @@ function ClassCard({ data }: { data: ClassCardData }) {
 				</AlertDialog>
 			</HoverCardContent>
 		</HoverCard>
+	);
+}
+
+function ClassCardUI({ data }: { data: ClassCardData }) {
+	return (
+		<div
+			className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"
+			style={{
+				borderLeftColor: data.color,
+				background: `color-mix(in oklab, ${data.color} 20%, transparent)`,
+			}}
+		>
+			<p>{data.title}</p>
+			<p className="text-sm">{data.description}</p>
+
+			<Separator className="bg-black/20" />
+
+			<div>
+				{data.meetings.map((meeting) => (
+					<div
+						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
+						className="flex flex-row items-center gap-1 text-sm"
+					>
+						<Tooltip>
+							<TooltipTrigger>
+								<p>
+									{meeting.days.map((day) => singleLetterDay(day)).join("")}:
+								</p>
+							</TooltipTrigger>
+							<TooltipContent>{meeting.days.join(", ")}</TooltipContent>
+						</Tooltip>
+						<p>
+							{meeting.startTime.toLocaleTimeString("en-US", {
+								hour12: true,
+								hour: "2-digit",
+								minute: "2-digit",
+							})}
+						</p>
+						<span className="text-muted-foreground">to</span>
+						<p>
+							{meeting.endTime.toLocaleTimeString("en-US", {
+								hour12: true,
+								hour: "2-digit",
+								minute: "2-digit",
+							})}
+						</p>
+					</div>
+				))}
+			</div>
+		</div>
 	);
 }
