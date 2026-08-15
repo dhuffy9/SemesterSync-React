@@ -7,6 +7,7 @@ export const instructorSchema = z.object({
 });
 
 export const instructorAddSchema = z.object({
+	id: z.uuidv4(),
 	firstName: z.string().min(1, "First name is required"),
 	lastName: z.string().min(1, "Last name is required"),
 });

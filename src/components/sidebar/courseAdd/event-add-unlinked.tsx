@@ -214,6 +214,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 					building: meeting.building.long,
 					room: meeting.room.name || "",
 					instructors: meeting.instructors.map((instructor) => ({
+						id: uuidv4(),
 						firstName: instructor.first_name,
 						lastName: instructor.last_name,
 					})),
@@ -636,9 +637,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 																			`section.meetings[${index}].instructors`,
 																		)
 																		.map((instructor, instructorIndex) => (
-																			<div
-																				key={`${instructor.firstName}-${instructor.lastName}-${instructorIndex}`}
-																			>
+																			<div key={`instructor-${instructor.id}`}>
 																				<Field
 																					orientation={"responsive"}
 																					className="@md/field-group:items-end"
@@ -764,6 +763,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 																						`section.meetings[${index}].instructors`,
 																					),
 																					{
+																						id: uuidv4(),
 																						firstName: "",
 																						lastName: "",
 																					},
