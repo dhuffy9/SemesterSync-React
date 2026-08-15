@@ -22,8 +22,8 @@ export const linkedEventSchema = z.object({
 //Unlinked Event
 export const unlinkedEventMeetingSchema = z.object({
 	day: daysOfWeekSchema,
-	startTime: z.date(),
-	endTime: z.date(),
+	startTime: z.coerce.date(),
+	endTime: z.coerce.date(),
 
 	campus: z.string(),
 	building: z.string(),
@@ -40,8 +40,8 @@ export const unlinkedEventMeetingSchema = z.object({
 export const unlinkedEventSchema = z.object({
 	kind: z.literal("unlinked-course"),
 
-	startDate: z.date(),
-	endDate: z.date(),
+	startDate: z.coerce.date(),
+	endDate: z.coerce.date(),
 
 	courseTitle: z.string(),
 	courseCode: z.string(),
@@ -55,8 +55,8 @@ export const unlinkedEventSchema = z.object({
 //Personal Event
 export const personalEventMeetingSchema = z.object({
 	day: daysOfWeekSchema,
-	startTime: z.date(),
-	endTime: z.date(),
+	startTime: z.coerce.date(),
+	endTime: z.coerce.date(),
 
 	location: z.string().optional(),
 });
@@ -64,8 +64,8 @@ export const personalEventMeetingSchema = z.object({
 export const personalEventSchema = z.object({
 	kind: z.literal("personal"),
 
-	startDate: z.date(),
-	endDate: z.date(),
+	startDate: z.coerce.date(),
+	endDate: z.coerce.date(),
 
 	title: z.string(),
 	description: z.string().optional(),
