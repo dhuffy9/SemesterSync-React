@@ -87,9 +87,10 @@ type EventAddPersonalProps = {
 
 const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 	({ terms, setSelectedOption, closeParentModal }, ref) => {
+		const [initialDate] = useState(() => new Date());
 		const [dateTemp, setDateTemp] = useState<DateRange | undefined>({
-			from: new Date(),
-			to: new Date(),
+			from: initialDate,
+			to: initialDate,
 		});
 		const [meetingsIsOpen, setMeetingsIsOpen] = useState(true);
 		const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -108,8 +109,8 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 				title: "",
 				description: "",
 				color: "#4285F4",
-				startDate: new Date(),
-				endDate: new Date(),
+				startDate: initialDate,
+				endDate: initialDate,
 				meetings: [] as Array<NonCourseMeetingAddType>,
 			} as NonCourseAddType,
 			validators: {
@@ -183,15 +184,28 @@ const EventAddPersonal = forwardRef<HTMLDivElement, EventAddPersonalProps>(
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Personal Event</p>
 					<AlertDialog open={isBackResetModalOpen}>
-						<AlertDialogTrigger
-							render={<Button variant="secondary" />}
-							onClick={() => {
-								setIsBackResetModalOpen(true);
-								closeParentModal(true);
-							}}
-						>
-							<ArrowLeft /> Back
-						</AlertDialogTrigger>
+						<form.Subscribe selector={(state) => state.isDefaultValue}>
+							{(isDefaultValue) => (
+								<AlertDialogTrigger
+									render={
+										<Button
+											variant={isDefaultValue ? "secondary" : "destructive"}
+										/>
+									}
+									onClick={() => {
+										if (isDefaultValue) {
+											form.reset();
+											setSelectedOption("none");
+										} else {
+											setIsBackResetModalOpen(true);
+											closeParentModal(true);
+										}
+									}}
+								>
+									<ArrowLeft /> Back
+								</AlertDialogTrigger>
+							)}
+						</form.Subscribe>
 						<AlertDialogContent size="sm">
 							<AlertDialogHeader>
 								<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">

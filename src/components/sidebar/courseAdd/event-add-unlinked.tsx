@@ -94,9 +94,10 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
 		>([]);
+		const [initialDate] = useState(() => new Date());
 		const [dateTemp, setDateTemp] = useState<DateRange | undefined>({
-			from: new Date(),
-			to: new Date(),
+			from: initialDate,
+			to: initialDate,
 		});
 		const [meetingsIsOpen, setMeetingsIsOpen] = useState(true);
 		const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -118,8 +119,8 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 				color: "#4285F4",
 				section: {
 					sectionCode: "",
-					startDate: new Date(),
-					endDate: new Date(),
+					startDate: initialDate,
+					endDate: initialDate,
 					deliveryMethod: "On Campus",
 					meetings: [] as Array<MeetingAddType>,
 				},
@@ -237,15 +238,29 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Course Event Manually</p>
 					<AlertDialog open={isBackResetModalOpen}>
-						<AlertDialogTrigger
-							render={<Button variant="secondary" />}
-							onClick={() => {
-								setIsBackResetModalOpen(true);
-								closeParentModal(true);
-							}}
-						>
-							<ArrowLeft /> Back
-						</AlertDialogTrigger>
+						<form.Subscribe selector={(state) => state.isDefaultValue}>
+							{(isDefaultValue) => (
+								<AlertDialogTrigger
+									render={
+										<Button
+											variant={isDefaultValue ? "secondary" : "destructive"}
+										/>
+									}
+									onClick={() => {
+										if (isDefaultValue) {
+											form.reset();
+											setSelectedCourse([]);
+											setSelectedOption("none");
+										} else {
+											setIsBackResetModalOpen(true);
+											closeParentModal(true);
+										}
+									}}
+								>
+									<ArrowLeft /> Back
+								</AlertDialogTrigger>
+							)}
+						</form.Subscribe>
 						<AlertDialogContent size="sm">
 							<AlertDialogHeader>
 								<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
