@@ -1,18 +1,15 @@
 "use client";
 
 import clsx from "clsx";
-import { Edit, Palette, Trash } from "lucide-react";
+import { Edit, Palette } from "lucide-react";
 import { useState } from "react";
+import DangerModal from "@/components/modals/danger";
 import {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
 	AlertDialogContent,
-	AlertDialogDescription,
 	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogMedia,
-	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -268,64 +265,43 @@ function ClassCard({ data }: { data: ClassCardData }) {
 					</AlertDialogContent>
 				</AlertDialog>
 
-				<AlertDialog
-					open={isDeleteModalOpen}
+				<DangerModal
+					type="delete"
+					isModalOpen={isDeleteModalOpen}
 					onOpenChange={setIsDeleteModalOpen}
-				>
-					<Tooltip>
-						<AlertDialogTrigger
-							render={
-								<TooltipTrigger
-									render={<Button variant="destructive" size="icon" />}
-								>
-									<Trash />
-								</TooltipTrigger>
-							}
-							onClick={(e) => {
-								if (e.shiftKey) {
-									removeEvent(activeTab.id, data.eventId);
-									toast.add({
-										title: "Event Deleted Successfully",
-										type: "success",
-									});
-								} else {
-									setIsDeleteModalOpen(true);
-								}
-							}}
-						/>
-						<TooltipContent side="right">Delete</TooltipContent>
-					</Tooltip>
-					<AlertDialogContent size="sm">
-						<AlertDialogHeader>
-							<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-								<Trash />
-							</AlertDialogMedia>
-							<AlertDialogTitle>Delete {data.title}</AlertDialogTitle>
-							<AlertDialogDescription>
-								You are about to delete this event with{" "}
-								<b>{data.meetings.length} meetings</b>
-							</AlertDialogDescription>
-						</AlertDialogHeader>
-						<AlertDialogFooter>
-							<AlertDialogCancel onClick={() => setHoverCardOpen(false)}>
-								Don't Delete
-							</AlertDialogCancel>
-							<AlertDialogAction
-								variant={"destructive"}
-								onClick={() => {
-									removeEvent(activeTab.id, data.eventId);
-									toast.add({
-										title: "Event Deleted Successfully",
-										type: "success",
-									});
-									setHoverCardOpen(false);
-								}}
-							>
-								Delete Event
-							</AlertDialogAction>
-						</AlertDialogFooter>
-					</AlertDialogContent>
-				</AlertDialog>
+					triggerTooltip="Delete"
+					triggerOnClick={(e) => {
+						if (e.shiftKey) {
+							removeEvent(activeTab.id, data.eventId);
+							toast.add({
+								title: "Event Deleted Successfully",
+								type: "success",
+							});
+							e.stopPropagation();
+						}
+					}}
+					titleChildren={`Delete ${data.title}`}
+					descriptionChildren={
+						<>
+							Are you sure you would like to delete this event with{" "}
+							<b>
+								{data.meetings.length} meeting
+								{data.meetings.length > 1 ? "s" : ""}
+							</b>
+							?
+						</>
+					}
+					cancelOnClick={() => setHoverCardOpen(false)}
+					actionChildren="Delete Event"
+					actionOnClick={() => {
+						removeEvent(activeTab.id, data.eventId);
+						setHoverCardOpen(false);
+						toast.add({
+							title: "Event Deleted Successfully",
+							type: "success",
+						});
+					}}
+				/>
 			</HoverCardContent>
 		</HoverCard>
 	);

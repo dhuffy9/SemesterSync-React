@@ -1,21 +1,10 @@
 "use client";
 import clsx from "clsx";
-import { ArrowLeft, Palette, PlusIcon, RotateCw } from "lucide-react";
+import { Palette, PlusIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useState } from "react";
 import { v4 as uuid } from "uuid";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogMedia,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import DangerModal from "@/components/modals/danger";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import {
@@ -91,61 +80,34 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Linked Course Event</p>
-					<AlertDialog open={isResetModalOpen}>
-						<AlertDialogTrigger
-							render={
-								<Button
-									variant={
-										selectedCourse.length === 0 ? "secondary" : "destructive"
-									}
-									onClick={() => {
-										if (selectedCourse.length === 0) {
-											setSelectedOption("none");
-											setSelectedCourse([]);
-										} else {
-											setIsResetModalOpen(true);
-											closeParentModal(true);
-										}
-									}}
-								/>
+
+					<DangerModal
+						type="proceedReset"
+						isModalOpen={isResetModalOpen}
+						onOpenChange={setIsResetModalOpen}
+						triggerDestructive={selectedCourse.length !== 0}
+						triggerOnClick={() => {
+							if (selectedCourse.length === 0) {
+								setSelectedOption("none");
+								setSelectedCourse([]);
+								setIsResetModalOpen(false);
+							} else {
+								closeParentModal(true);
 							}
-						>
-							<ArrowLeft /> Back
-						</AlertDialogTrigger>
-						<AlertDialogContent size="sm">
-							<AlertDialogHeader>
-								<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-									<RotateCw />
-								</AlertDialogMedia>
-								<AlertDialogTitle>Reset Selected Courses</AlertDialogTitle>
-								<AlertDialogDescription>
-									Going back will clear the selected courses, are you sure you
-									would like to proceed?
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel
-									onClick={() => {
-										setIsResetModalOpen(false);
-										closeParentModal(false);
-									}}
-								>
-									Cancel
-								</AlertDialogCancel>
-								<AlertDialogAction
-									variant="destructive"
-									onClick={() => {
-										setIsResetModalOpen(false);
-										closeParentModal(false);
-										setSelectedCourse([]);
-										setTimeout(() => setSelectedOption("none"), 150);
-									}}
-								>
-									Proceed & Reset
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
+						}}
+						titleChildren="Reset Selected Course"
+						descriptionChildren="Going back will clear the selected courses, are you sure you
+									would like to proceed?"
+						cancelOnClick={() => {
+							closeParentModal(false);
+						}}
+						actionOnClick={() => {
+							setIsResetModalOpen(false);
+							closeParentModal(false);
+							setSelectedCourse([]);
+							setTimeout(() => setSelectedOption("none"), 150);
+						}}
+					/>
 				</div>
 
 				<div className="flex flex-col gap-2 rounded-md border border-border p-2">

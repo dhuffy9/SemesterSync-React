@@ -9,15 +9,14 @@ import type { Event } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
 import type { AssembledCourse, CourseResponse } from "@/types/courses";
 import type { CalendarCard, CalendarCards } from "@/types/events";
+import DangerModal from "./modals/danger";
 import {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
 	AlertDialogContent,
-	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogMedia,
 	AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { ColorPickerInners } from "./ui/color-picker";
@@ -369,56 +368,40 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 				})}
 			</div>
 
-			<AlertDialog open={isDeleteModalOpen}>
-				{modalEvent && (
-					<AlertDialogContent size="sm">
-						<AlertDialogHeader>
-							<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-								<Trash />
-							</AlertDialogMedia>
-							<AlertDialogTitle>Delete {modalEvent.title}</AlertDialogTitle>
-							<AlertDialogDescription>
-								You are about to delete this time slot
-								{modalEvent.meetingCount > 1 && (
-									<>
-										, and{" "}
-										<span className="font-bold">
-											{modalEvent.meetingCount - 1} other
-										</span>{" "}
-										associated time slot
-										{modalEvent.meetingCount > 2 && "s"}
-									</>
-								)}
-							</AlertDialogDescription>
-						</AlertDialogHeader>
-						<AlertDialogFooter>
-							<AlertDialogCancel
-								onClick={() => {
-									setModalEvent(undefined);
-									setIsDeleteModalOpen(false);
-								}}
-							>
-								Don't Delete
-							</AlertDialogCancel>
-							<AlertDialogAction
-								variant={"destructive"}
-								disabled={modalEvent === undefined}
-								onClick={() => {
-									removeEvent(activeTab.id, modalEvent.id);
-									setIsDeleteModalOpen(false);
-									setModalEvent(undefined);
-									toast.add({
-										title: "Event Deleted Successfully",
-										type: "success",
-									});
-								}}
-							>
-								Delete Event
-							</AlertDialogAction>
-						</AlertDialogFooter>
-					</AlertDialogContent>
-				)}
-			</AlertDialog>
+			{modalEvent && (
+				<DangerModal
+					type="delete"
+					isModalOpen={isDeleteModalOpen}
+					onOpenChange={setIsDeleteModalOpen}
+					trigger={null}
+					titleChildren={`Delete ${modalEvent.title}`}
+					descriptionChildren={
+						<>
+							You are about to delete this time slot
+							{modalEvent.meetingCount > 1 && (
+								<>
+									, and{" "}
+									<span className="font-bold">
+										{modalEvent.meetingCount - 1} other
+									</span>{" "}
+									associated time slot
+									{modalEvent.meetingCount > 2 && "s"}
+								</>
+							)}
+						</>
+					}
+					cancelOnClick={() => setModalEvent(undefined)}
+					actionChildren="Delete Event"
+					actionOnClick={() => {
+						removeEvent(activeTab.id, modalEvent.id);
+						setModalEvent(undefined);
+						toast.add({
+							title: "Event Deleted Successfully",
+							type: "success",
+						});
+					}}
+				/>
+			)}
 
 			<AlertDialog open={isColorModalOpen}>
 				<AlertDialogContent>

@@ -5,31 +5,18 @@ import { useForm } from "@tanstack/react-form";
 import clsx from "clsx";
 import { format } from "date-fns";
 import {
-	ArrowLeft,
 	CalendarIcon,
 	Check,
 	ChevronDown,
 	Palette,
 	Plus,
-	RotateCw,
 	Trash,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { v4 as uuidv4 } from "uuid";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogMedia,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import DangerModal from "@/components/modals/danger";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -238,65 +225,34 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Course Event Manually</p>
-					<AlertDialog open={isBackResetModalOpen}>
-						<form.Subscribe selector={(state) => state.isDefaultValue}>
-							{(isDefaultValue) => (
-								<AlertDialogTrigger
-									render={
-										<Button
-											variant={isDefaultValue ? "secondary" : "destructive"}
-										/>
-									}
-									onClick={() => {
-										if (isDefaultValue) {
-											form.reset();
-											setSelectedCourse([]);
-											setSelectedOption("none");
-										} else {
-											setIsBackResetModalOpen(true);
-											closeParentModal(true);
-										}
-									}}
-								>
-									<ArrowLeft /> Back
-								</AlertDialogTrigger>
-							)}
-						</form.Subscribe>
-						<AlertDialogContent size="sm">
-							<AlertDialogHeader>
-								<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-									<RotateCw />
-								</AlertDialogMedia>
-								<AlertDialogTitle>Reset Entered Information</AlertDialogTitle>
-								<AlertDialogDescription>
-									Going back will clear the entered information, are you sure
-									you would like to proceed?
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel
-									onClick={() => {
-										setIsBackResetModalOpen(false);
-										closeParentModal(false);
-									}}
-								>
-									Cancel
-								</AlertDialogCancel>
-								<AlertDialogAction
-									variant="destructive"
-									onClick={() => {
-										setIsBackResetModalOpen(false);
-										closeParentModal(false);
+
+					<form.Subscribe selector={(state) => state.isDefaultValue}>
+						{(isDefaultValue) => (
+							<DangerModal
+								type="proceedReset"
+								isModalOpen={isBackResetModalOpen}
+								onOpenChange={setIsBackResetModalOpen}
+								triggerDestructive={!isDefaultValue}
+								triggerOnClick={() => {
+									if (isDefaultValue) {
 										form.reset();
 										setSelectedCourse([]);
-										setTimeout(() => setSelectedOption("none"), 150);
-									}}
-								>
-									Proceed & Reset
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
+										setSelectedOption("none");
+									} else {
+										closeParentModal(true);
+									}
+								}}
+								cancelOnClick={() => closeParentModal(false)}
+								actionOnClick={() => {
+									form.reset();
+									setSelectedCourse([]);
+									setIsBackResetModalOpen(false);
+									closeParentModal(false);
+									setTimeout(() => setSelectedOption("none"), 150);
+								}}
+							/>
+						)}
+					</form.Subscribe>
 				</div>
 
 				<div className="flex flex-row items-center gap-2">
@@ -317,16 +273,22 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 							/>
 						</PopoverContent>
 					</Popover>
-					<Button
-						variant="destructive"
-						size="icon"
-						onClick={() => {
-							setIsResetModalOpen(true);
+
+					<DangerModal
+						type="reset"
+						isModalOpen={isResetModalOpen}
+						onOpenChange={setIsResetModalOpen}
+						triggerOnClick={() => {
 							closeParentModal(true);
 						}}
-					>
-						<RotateCw />
-					</Button>
+						cancelOnClick={() => closeParentModal(false)}
+						actionOnClick={() => {
+							form.reset();
+							setSelectedCourse([]);
+							setIsResetModalOpen(false);
+							closeParentModal(false);
+						}}
+					/>
 				</div>
 
 				<Separator />
@@ -1253,55 +1215,24 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 							<Separator />
 
 							<div className="flex flex-row justify-end items-center gap-2">
-								<AlertDialog
-									open={isResetModalOpen}
+								<DangerModal
+									type="reset"
+									triggerChildren="Reset"
+									triggerVariant="secondary"
+									isModalOpen={isResetModalOpen}
 									onOpenChange={setIsResetModalOpen}
-								>
-									<AlertDialogTrigger
-										render={<Button variant="secondary" />}
-										onClick={() => {
-											setIsResetModalOpen(true);
-											closeParentModal(true);
-										}}
-									>
-										Reset
-									</AlertDialogTrigger>
-									<AlertDialogContent size="sm">
-										<AlertDialogHeader>
-											<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-												<RotateCw />
-											</AlertDialogMedia>
-											<AlertDialogTitle>
-												Reset Entered Information
-											</AlertDialogTitle>
-											<AlertDialogDescription>
-												Are you sure you want to reset all the entered
-												information?
-											</AlertDialogDescription>
-										</AlertDialogHeader>
-										<AlertDialogFooter>
-											<AlertDialogCancel
-												onClick={() => {
-													setIsResetModalOpen(false);
-													closeParentModal(false);
-												}}
-											>
-												Cancel
-											</AlertDialogCancel>
-											<AlertDialogAction
-												variant="destructive"
-												onClick={() => {
-													form.reset();
-													setSelectedCourse([]);
-													setIsResetModalOpen(false);
-													closeParentModal(false);
-												}}
-											>
-												Reset
-											</AlertDialogAction>
-										</AlertDialogFooter>
-									</AlertDialogContent>
-								</AlertDialog>
+									triggerOnClick={() => {
+										closeParentModal(true);
+									}}
+									cancelOnClick={() => closeParentModal(false)}
+									actionOnClick={() => {
+										form.reset();
+										setSelectedCourse([]);
+										setIsResetModalOpen(false);
+										closeParentModal(false);
+									}}
+								/>
+
 								<Button type="submit">
 									<Plus /> Add Course
 								</Button>
