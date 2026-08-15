@@ -16,6 +16,7 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { ColorPickerInners } from "@/components/ui/color-picker";
 import {
 	HoverCard,
 	HoverCardContent,
@@ -33,6 +34,17 @@ import { cn, mergeMeetings, singleLetterDay } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { CourseResponse } from "@/types/courses";
 import type { MergedMeeting } from "@/types/meetings";
+
+const defaultColors = [
+	"#c22727",
+	"#873d16",
+	"#278716",
+	"#168776",
+	"#4285F4",
+	"#181687",
+	"#561687",
+	"#871663",
+];
 
 export default function EventListClient({
 	courses,
@@ -152,9 +164,12 @@ type ClassCardData = {
 
 function ClassCard({ data }: { data: ClassCardData }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
+	const getEvent = useUserStore((state) => state.getEvent);
+	const updateEvent = useUserStore((state) => state.updateEvent);
 	const removeEvent = useUserStore((state) => state.removeEvent);
 
 	const [hoverCardOpen, setHoverCardOpen] = useState(false);
+	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	return (
 		<HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
@@ -220,12 +235,138 @@ function ClassCard({ data }: { data: ClassCardData }) {
 					<TooltipContent side="right">Edit</TooltipContent>
 				</Tooltip>
 
-				<Tooltip>
-					<TooltipTrigger render={<Button variant="secondary" size="icon" />}>
-						<Palette />
-					</TooltipTrigger>
-					<TooltipContent side="right">Change Color</TooltipContent>
-				</Tooltip>
+				<AlertDialog onOpenChangeComplete={() => setSelectedColor(data.color)}>
+					<Tooltip>
+						<AlertDialogTrigger
+							render={
+								<TooltipTrigger
+									render={<Button variant="secondary" size="icon" />}
+								>
+									<Palette />
+								</TooltipTrigger>
+							}
+						/>
+						<TooltipContent side="right">Change Color</TooltipContent>
+					</Tooltip>
+					<AlertDialogContent>
+						<div className="flex flex-row items-start gap-4">
+							<div className="flex flex-col gap-2 flex-1">
+								<ColorPickerInners
+									value={selectedColor}
+									onChange={(v) => setSelectedColor(v)}
+								/>
+
+								<div className="flex flex-row items-center gap-2">
+									{defaultColors.map((color) => (
+										<button
+											key={color}
+											type="button"
+											onClick={() => setSelectedColor(color)}
+											className="size-4 rounded-sm cursor-pointer border border-border"
+											style={{ backgroundColor: color }}
+										></button>
+									))}
+								</div>
+
+								<AlertDialogFooter>
+									<AlertDialogCancel
+										onClick={() => {
+											setHoverCardOpen(false);
+										}}
+									>
+										Cancel
+									</AlertDialogCancel>
+									<AlertDialogAction
+										onClick={() => {
+											const ev = getEvent(activeTab.id, data.eventId);
+
+											if (ev) {
+												ev.color = selectedColor;
+												updateEvent(activeTab.id, ev);
+
+												setHoverCardOpen(false);
+												toast.add({
+													title: "Event Color Changed",
+													type: "success",
+												});
+											} else {
+												toast.add({
+													title: "Event not found",
+													type: "error",
+												});
+												setHoverCardOpen(false);
+											}
+										}}
+									>
+										Save Color
+									</AlertDialogAction>
+								</AlertDialogFooter>
+							</div>
+							<Separator orientation="vertical" />
+							<div className="flex-1 flex flex-col gap-2">
+								<h2 className="font-bold">Event Preview:</h2>
+								<div
+									className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
+									style={{
+										backgroundColor: `color-mix(in oklab, ${selectedColor} 20%, transparent)`,
+										borderColor: selectedColor,
+									}}
+								>
+									<div className="flex flex-col gap-2">
+										<p>{data.title}</p>
+										<p
+											className={clsx("text-sm", {
+												"italic text-muted-foreground": !data.description,
+											})}
+										>
+											{data.description ? data.description : "No Description"}
+										</p>
+
+										<Separator className="bg-black/20" />
+
+										<div>
+											{data.meetings.map((meeting) => (
+												<div
+													key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
+													className="flex flex-row items-center gap-1 text-sm"
+												>
+													<Tooltip>
+														<TooltipTrigger>
+															<p>
+																{meeting.days
+																	.map((day) => singleLetterDay(day))
+																	.join("")}
+																:
+															</p>
+														</TooltipTrigger>
+														<TooltipContent>
+															{meeting.days.join(", ")}
+														</TooltipContent>
+													</Tooltip>
+													<p>
+														{meeting.startTime.toLocaleTimeString("en-US", {
+															hour12: true,
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+													</p>
+													<span className="text-muted-foreground">to</span>
+													<p>
+														{meeting.endTime.toLocaleTimeString("en-US", {
+															hour12: true,
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+													</p>
+												</div>
+											))}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</AlertDialogContent>
+				</AlertDialog>
 
 				<AlertDialog>
 					<Tooltip>
