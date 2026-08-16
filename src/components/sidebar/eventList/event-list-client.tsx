@@ -127,6 +127,7 @@ export default function EventListClient({
 								break;
 							}
 							case "unlinked-course":
+								console.log("meetings", event.meetings);
 								cardObject.title = `${event.courseCode}-${event.sectionCode}`;
 								cardObject.description = event.courseTitle;
 								cardObject.meetings = mergeMeetings(event.meetings);
@@ -308,6 +309,8 @@ function ClassCard({ data }: { data: ClassCardData }) {
 }
 
 function ClassCardUI({ data }: { data: ClassCardData }) {
+	console.log(data);
+
 	return (
 		<div
 			className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"

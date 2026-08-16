@@ -21,9 +21,10 @@ export function mergeMeetings(meetings: Array<object>) {
 			"day" in meeting &&
 			typeof meeting.day === "string" &&
 			"startTime" in meeting &&
-			typeof meeting.startTime === "string" &&
+			(typeof meeting.startTime === "string" ||
+				meeting.startTime instanceof Date) &&
 			"endTime" in meeting &&
-			typeof meeting.endTime === "string"
+			(typeof meeting.endTime === "string" || meeting.endTime instanceof Date)
 		) {
 			const dayRes = daysOfWeekSchema.safeParse(meeting.day);
 			if (dayRes.success === false) continue;
