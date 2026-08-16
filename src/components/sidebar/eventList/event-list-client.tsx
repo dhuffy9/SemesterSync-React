@@ -3,17 +3,14 @@
 import clsx from "clsx";
 import { Edit, Palette } from "lucide-react";
 import { useState } from "react";
-import DangerModal from "@/components/modals/danger";
 import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogFooter,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+	type EventListCardData,
+	EventListCardUI,
+} from "@/components/events/list-card";
+import DangerModal from "@/components/modals/danger";
+import EditColorModal from "@/components/modals/events/edit-color";
+import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ColorPickerInners } from "@/components/ui/color-picker";
 import {
 	HoverCard,
 	HoverCardContent,
@@ -27,21 +24,9 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn, mergeMeetings, singleLetterDay } from "@/lib/utils";
+import { cn, mergeMeetings } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { CourseResponse } from "@/types/courses";
-import type { MergedMeeting } from "@/types/meetings";
-
-const defaultColors = [
-	"#c22727",
-	"#873d16",
-	"#278716",
-	"#168776",
-	"#4285F4",
-	"#181687",
-	"#561687",
-	"#871663",
-];
 
 export default function EventListClient({
 	courses,
@@ -86,7 +71,7 @@ export default function EventListClient({
 						const cardObject = {
 							color: event.color,
 							eventId: event.eventId,
-						} as ClassCardData;
+						} as EventListCardData;
 
 						switch (event.kind) {
 							case "linked-course": {
@@ -140,8 +125,9 @@ export default function EventListClient({
 
 						return (
 							<ClassCard
-								data={cardObject}
 								key={`sidebar-event-${event.eventId}`}
+								courses={courses}
+								data={cardObject}
 							/>
 						);
 					})}
@@ -151,28 +137,23 @@ export default function EventListClient({
 	);
 }
 
-type ClassCardData = {
-	eventId: string;
-	title: string;
-	description: string;
-	color: string;
-	meetings: Array<MergedMeeting>;
-};
-
-function ClassCard({ data }: { data: ClassCardData }) {
+function ClassCard({
+	courses,
+	data,
+}: {
+	courses: CourseResponse;
+	data: EventListCardData;
+}) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
-	const getEvent = useUserStore((state) => state.getEvent);
-	const updateEvent = useUserStore((state) => state.updateEvent);
 	const removeEvent = useUserStore((state) => state.removeEvent);
 
 	const [hoverCardOpen, setHoverCardOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	return (
 		<HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
 			<HoverCardTrigger delay={0} closeDelay={0}>
-				<ClassCardUI data={data} />
+				<EventListCardUI data={data} />
 			</HoverCardTrigger>
 			<HoverCardContent
 				side="right"
@@ -188,82 +169,26 @@ function ClassCard({ data }: { data: ClassCardData }) {
 					<TooltipContent side="right">Edit</TooltipContent>
 				</Tooltip>
 
-				<AlertDialog onOpenChangeComplete={() => setSelectedColor(data.color)}>
-					<Tooltip>
-						<AlertDialogTrigger
-							render={
-								<TooltipTrigger
-									render={<Button variant="secondary" size="icon" />}
-								>
-									<Palette />
-								</TooltipTrigger>
-							}
-						/>
-						<TooltipContent side="right">Change Color</TooltipContent>
-					</Tooltip>
-					<AlertDialogContent>
-						<div className="flex flex-row items-start gap-4">
-							<div className="flex flex-col gap-2 flex-1">
-								<ColorPickerInners
-									value={selectedColor}
-									onChange={(v) => setSelectedColor(v)}
-								/>
-
-								<div className="flex flex-row items-center gap-2">
-									{defaultColors.map((color) => (
-										<button
-											key={color}
-											type="button"
-											onClick={() => setSelectedColor(color)}
-											className="size-4 rounded-sm cursor-pointer border border-border"
-											style={{ backgroundColor: color }}
-										></button>
-									))}
-								</div>
-
-								<AlertDialogFooter>
-									<AlertDialogCancel
-										onClick={() => {
-											setHoverCardOpen(false);
-										}}
+				<EditColorModal
+					courses={courses}
+					eventId={data.eventId}
+					trigger={
+						<Tooltip>
+							<AlertDialogTrigger
+								render={
+									<TooltipTrigger
+										render={<Button variant="secondary" size="icon" />}
 									>
-										Cancel
-									</AlertDialogCancel>
-									<AlertDialogAction
-										onClick={() => {
-											const ev = getEvent(activeTab.id, data.eventId);
-
-											if (ev) {
-												ev.color = selectedColor;
-												updateEvent(activeTab.id, ev);
-
-												setHoverCardOpen(false);
-												toast.add({
-													title: "Event Color Changed",
-													type: "success",
-												});
-											} else {
-												toast.add({
-													title: "Event not found",
-													type: "error",
-												});
-												setHoverCardOpen(false);
-											}
-										}}
-									>
-										Save Color
-									</AlertDialogAction>
-								</AlertDialogFooter>
-							</div>
-							<Separator orientation="vertical" />
-							<div className="flex-1 flex flex-col gap-2">
-								<h2 className="font-bold">Event Preview:</h2>
-
-								<ClassCardUI data={{ ...data, color: selectedColor }} />
-							</div>
-						</div>
-					</AlertDialogContent>
-				</AlertDialog>
+										<Palette />
+									</TooltipTrigger>
+								}
+							/>
+							<TooltipContent side="right">Change Color</TooltipContent>
+						</Tooltip>
+					}
+					cancelOnClick={() => setHoverCardOpen(false)}
+					actionSecondaryOnClick={() => setHoverCardOpen(false)}
+				/>
 
 				<DangerModal
 					type="delete"
@@ -304,55 +229,5 @@ function ClassCard({ data }: { data: ClassCardData }) {
 				/>
 			</HoverCardContent>
 		</HoverCard>
-	);
-}
-
-function ClassCardUI({ data }: { data: ClassCardData }) {
-	return (
-		<div
-			className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"
-			style={{
-				borderLeftColor: data.color,
-				background: `color-mix(in oklab, ${data.color} 20%, transparent)`,
-			}}
-		>
-			<p>{data.title}</p>
-			<p className="text-sm">{data.description}</p>
-
-			<Separator className="bg-black/20" />
-
-			<div>
-				{data.meetings.map((meeting) => (
-					<div
-						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
-						className="flex flex-row items-center gap-1 text-sm"
-					>
-						<Tooltip>
-							<TooltipTrigger>
-								<p>
-									{meeting.days.map((day) => singleLetterDay(day)).join("")}:
-								</p>
-							</TooltipTrigger>
-							<TooltipContent>{meeting.days.join(", ")}</TooltipContent>
-						</Tooltip>
-						<p>
-							{meeting.startTime.toLocaleTimeString("en-US", {
-								hour12: true,
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-						<span className="text-muted-foreground">to</span>
-						<p>
-							{meeting.endTime.toLocaleTimeString("en-US", {
-								hour12: true,
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-					</div>
-				))}
-			</div>
-		</div>
 	);
 }

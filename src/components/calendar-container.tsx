@@ -10,16 +10,7 @@ import useUserStore from "@/stores/user-store";
 import type { AssembledCourse, CourseResponse } from "@/types/courses";
 import type { CalendarCard, CalendarCards } from "@/types/events";
 import DangerModal from "./modals/danger";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { ColorPickerInners } from "./ui/color-picker";
+import EditColorModal from "./modals/events/edit-color";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -51,23 +42,10 @@ const days = [
 	{ long: "Saturday", short: "Sat" },
 ];
 
-const defaultColors = [
-	"#c22727",
-	"#873d16",
-	"#278716",
-	"#168776",
-	"#4285F4",
-	"#181687",
-	"#561687",
-	"#871663",
-];
-
 export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const activeTerm = useUserStore((state) => state.activeTerm);
 	const events = useUserStore((state) => state.getEvents(state.activeTab));
-	const getEvent = useUserStore((state) => state.getEvent);
-	const updateEvent = useUserStore((state) => state.updateEvent);
 	const removeEvent = useUserStore((state) => state.removeEvent);
 
 	const today = new Date();
@@ -82,7 +60,6 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [modalEvent, setModalEvent] = useState<CalendarCard>();
-	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	if (typeof courses === "number") return <p>Error loading courses</p>;
 
@@ -335,7 +312,6 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 									<ContextMenuItem
 										onClick={() => {
 											setIsColorModalOpen(true);
-											setSelectedColor(event.color);
 											setModalEvent(event);
 										}}
 									>
@@ -403,119 +379,16 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 				/>
 			)}
 
-			<AlertDialog open={isColorModalOpen}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Change Event Color</AlertDialogTitle>
-					</AlertDialogHeader>
-					<AlertDialogContent>
-						{modalEvent && (
-							<div className="flex flex-row items-start gap-4">
-								<div className="flex flex-col gap-2 flex-1">
-									<ColorPickerInners
-										value={selectedColor}
-										onChange={(v) => setSelectedColor(v)}
-									/>
-
-									<div className="flex flex-row items-center gap-2">
-										{defaultColors.map((color) => (
-											<button
-												key={color}
-												type="button"
-												onClick={() => setSelectedColor(color)}
-												className="size-4 rounded-sm cursor-pointer border border-border"
-												style={{ backgroundColor: color }}
-											></button>
-										))}
-									</div>
-
-									<AlertDialogFooter className="">
-										<AlertDialogCancel
-											onClick={() => {
-												setIsColorModalOpen(false);
-												setModalEvent(undefined);
-											}}
-										>
-											Cancel
-										</AlertDialogCancel>
-										<AlertDialogAction
-											onClick={() => {
-												const ev = getEvent(activeTab.id, modalEvent.id);
-
-												if (ev) {
-													ev.color = selectedColor;
-													updateEvent(activeTab.id, ev);
-
-													setIsColorModalOpen(false);
-													setModalEvent(undefined);
-													toast.add({
-														title: "Event Color Changed",
-														type: "success",
-													});
-												} else {
-													toast.add({
-														title: "Event not found",
-														type: "error",
-													});
-													setIsColorModalOpen(false);
-													setModalEvent(undefined);
-												}
-											}}
-										>
-											Save Color
-										</AlertDialogAction>
-									</AlertDialogFooter>
-								</div>
-								<Separator orientation="vertical" />
-								<div className="flex-1 flex flex-col gap-2">
-									<h2 className="font-bold">Event Preview:</h2>
-									<div
-										className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
-										style={{
-											backgroundColor: `color-mix(in oklab, ${selectedColor} 20%, transparent)`,
-											borderColor: selectedColor,
-										}}
-									>
-										<div className="flex flex-col gap-2">
-											<p>{modalEvent.title}</p>
-											<p
-												className={clsx("text-sm", {
-													"italic text-muted-foreground":
-														!modalEvent.description,
-												})}
-											>
-												{modalEvent.description
-													? modalEvent.description
-													: "No Description"}
-											</p>
-
-											<Separator className="bg-black/20" />
-
-											<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
-												<span className="text-foreground">
-													{modalEvent.startTime.toLocaleTimeString("en-US", {
-														hour12: true,
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</span>
-												to
-												<span className="text-foreground">
-													{modalEvent.endTime.toLocaleTimeString("en-US", {
-														hour12: true,
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</span>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
-					</AlertDialogContent>
-				</AlertDialogContent>
-			</AlertDialog>
+			{modalEvent && (
+				<EditColorModal
+					courses={courses}
+					eventId={modalEvent.id}
+					open={isColorModalOpen}
+					onOpenChange={setIsColorModalOpen}
+					cancelOnClick={() => setModalEvent(undefined)}
+					actionSecondaryOnClick={() => setModalEvent(undefined)}
+				/>
+			)}
 		</div>
 	);
 }

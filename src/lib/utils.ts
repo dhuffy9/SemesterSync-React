@@ -3,6 +3,17 @@ import { twMerge } from "tailwind-merge";
 import { daysOfWeekSchema } from "@/schemas/util";
 import type { MergedMeeting } from "@/types/meetings";
 
+export const defaultColors = [
+	"#c22727",
+	"#873d16",
+	"#278716",
+	"#168776",
+	"#4285F4",
+	"#181687",
+	"#561687",
+	"#871663",
+];
+
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
