@@ -1128,6 +1128,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 																	days: [] as Array<string>,
 																	instructors: [
 																		{
+																			id: uuidv4(),
 																			firstName: "",
 																			lastName: "",
 																		},
