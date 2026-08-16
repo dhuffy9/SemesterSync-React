@@ -66,3 +66,18 @@ export type CalendarCard = CalendarCardGeneric &
 		| PersonalCalendarCard
 	);
 export type CalendarCards = Array<CalendarCard>;
+
+// Card UI
+export type CalendarCardUIData = {
+	title?: string;
+	description?: string;
+
+	startTime: Date;
+	endTime: Date;
+
+	color: string;
+};
+
+export type CalendarCardUIProps = {
+	event: CalendarCardUIData;
+};

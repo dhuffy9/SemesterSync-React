@@ -9,6 +9,7 @@ import type { Event } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
 import type { AssembledCourse, CourseResponse } from "@/types/courses";
 import type { CalendarCard, CalendarCards } from "@/types/events";
+import { CalendarCardUI } from "./events/calendar-card";
 import DangerModal from "./modals/danger";
 import EditColorModal from "./modals/events/edit-color";
 import {
@@ -174,50 +175,23 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 								<HoverCardTrigger
 									render={
 										<ContextMenuTrigger
-											render={
-												<div
-													className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
-													style={{
-														gridArea: `${event.rowOffset} / ${event.columnOffset} / span ${event.spanHeight} / ${event.columnOffset}`,
-														backgroundColor: `color-mix(in oklab, ${event.color} 20%, var(--background))`,
-														borderColor: event.color,
-													}}
-												/>
-											}
-										/>
-									}
-								>
-									<div className="flex flex-col gap-2">
-										<p>{event.title}</p>
-										<p
-											className={clsx("text-sm", {
-												"italic text-muted-foreground": !event.description,
-											})}
+											style={{
+												gridArea: `${event.rowOffset} / ${event.columnOffset} / span ${event.spanHeight} / ${event.columnOffset}`,
+											}}
 										>
-											{event.description ? event.description : "No Description"}
-										</p>
+											<CalendarCardUI
+												event={{
+													title: event.title,
+													description: event.description,
+													startTime: event.startTime,
+													endTime: event.endTime,
+													color: event.color,
+												}}
+											/>
+										</ContextMenuTrigger>
+									}
+								/>
 
-										<Separator className="bg-black/20" />
-
-										<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
-											<span className="text-foreground">
-												{event.startTime.toLocaleTimeString("en-US", {
-													hour12: true,
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</span>
-											to
-											<span className="text-foreground">
-												{event.endTime.toLocaleTimeString("en-US", {
-													hour12: true,
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</span>
-										</div>
-									</div>
-								</HoverCardTrigger>
 								<HoverCardContent side="right" className="flex flex-col gap-1">
 									{event.kind !== "personal" ? (
 										<>

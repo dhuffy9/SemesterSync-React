@@ -2,6 +2,7 @@
 
 import { Palette } from "lucide-react";
 import { useEffect, useState } from "react";
+import { CalendarCardUI } from "@/components/events/calendar-card";
 import { EventListCardUI } from "@/components/events/list-card";
 import {
 	AlertDialog,
@@ -101,22 +102,24 @@ export default function EditColorModal({
 				</AlertDialogHeader>
 
 				<div className="flex flex-row items-start gap-4">
-					<div className="flex flex-col gap-2 flex-1">
-						<ColorPickerInners
-							value={selectedColor}
-							onChange={(v) => setSelectedColor(v)}
-						/>
+					<div className="flex flex-col justify-between h-full flex-1">
+						<div className="space-y-2">
+							<ColorPickerInners
+								value={selectedColor}
+								onChange={(v) => setSelectedColor(v)}
+							/>
 
-						<div className="flex flex-row items-center gap-2">
-							{defaultColors.map((color) => (
-								<button
-									key={color}
-									type="button"
-									onClick={() => setSelectedColor(color)}
-									className="size-4 rounded-sm cursor-pointer border border-border"
-									style={{ backgroundColor: color }}
-								></button>
-							))}
+							<div className="flex flex-row items-center gap-2">
+								{defaultColors.map((color) => (
+									<button
+										key={color}
+										type="button"
+										onClick={() => setSelectedColor(color)}
+										className="size-4 rounded-sm cursor-pointer border border-border"
+										style={{ backgroundColor: color }}
+									></button>
+								))}
+							</div>
 						</div>
 
 						<AlertDialogFooter>
@@ -146,8 +149,6 @@ export default function EditColorModal({
 					<Separator orientation="vertical" />
 
 					<div className="flex-1">
-						<h2 className="font-semibold">Event Calendar Preview:</h2>
-
 						<h2 className="font-semibold">Event List Preview:</h2>
 						<EventListCardUI
 							data={
@@ -188,6 +189,39 @@ export default function EditColorModal({
 												description: eventData.description || "",
 												color: selectedColor,
 												meetings: mergeMeetings(eventData.meetings),
+											}
+							}
+						/>
+
+						<h2 className="font-semibold">Event Calendar Preview:</h2>
+						<CalendarCardUI
+							event={
+								eventData.kind === "linked-course"
+									? {
+											title: `${courseData?.course_code}-${courseData?.section.section_code}`,
+											description: `${courseData?.course_title}`,
+											startTime: new Date(
+												`2026-08-16T${courseData?.section.meetings[0].start_time}`,
+											),
+											endTime: new Date(
+												`2026-08-16T${courseData?.section.meetings[0].end_time}`,
+											),
+											color: selectedColor,
+										}
+									: eventData.kind === "unlinked-course"
+										? {
+												title: `${eventData.courseCode}-${eventData.sectionCode}`,
+												description: eventData.courseTitle,
+												startTime: eventData.meetings[0].startTime,
+												endTime: eventData.meetings[0].endTime,
+												color: selectedColor,
+											}
+										: {
+												title: eventData.title,
+												description: eventData.description || "",
+												startTime: eventData.meetings[0].startTime,
+												endTime: eventData.meetings[0].endTime,
+												color: selectedColor,
 											}
 							}
 						/>
