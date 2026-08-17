@@ -65,7 +65,7 @@ export default function DisclaimerModal() {
 									/>
 								}
 							>
-								<p>How to Add a Course</p>
+								<p>How to Add an Event</p>
 								<ChevronDown
 									className={clsx("transition-all", {
 										"rotate-180": howToOpen,
@@ -74,41 +74,25 @@ export default function DisclaimerModal() {
 							</CollapsibleTrigger>
 							<CollapsibleContent className="mt-2 pt-2 border border-t-border border-transparent">
 								<ol className="list-decimal list-inside space-y-2">
+									<li>Choose a term from the dropdown in the sidebar</li>
 									<li>
-										Click the <b>New Course</b> button
+										Click the <b>Add Event</b> button in the sidebar
 									</li>
-									<li>Search the course to autofill</li>
+									<li>Choose one of the 3 event types</li>
+									<li>Fill out the required information</li>
 									<li>
-										Or add manually the
-										<ol className="list-[lower-alpha] list-inside ml-4">
-											<li>Course number</li>
-											<li>Course title</li>
-											<li>Instructor</li>
-											<li>Credits</li>
-											<li>Days</li>
-											<li>Start/end time</li>
-											<li>
-												Term name/number{" "}
-												<span className="text-muted-foreground">
-													(optional; but recommended)
-												</span>
-											</li>
-											<li>
-												Term start/end time{" "}
-												<span className="text-muted-foreground">
-													(recommended so seamsters don't overlap)
-												</span>
-											</li>
-										</ol>
+										Click the <b>Add</b> button either at the top or bottom of
+										the form
 									</li>
 								</ol>
 							</CollapsibleContent>
 						</Collapsible>
 					</div>
 
-					<AlertDialogDescription className="pt-2">
-						If you find bugs or want to suggest new features please email{" "}
-						<MailTo email="toh2@pct.edu" /> or <MailTo email="nxt19@pct.edu" />
+					<AlertDialogDescription className="pt-2 text-wrap md:text-wrap">
+						If you run into any issues, are confused, or want to suggest new
+						features please email <MailTo email="toh2@pct.edu" /> or{" "}
+						<MailTo email="nxt19@pct.edu" />
 					</AlertDialogDescription>
 				</ScrollArea>
 
