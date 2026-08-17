@@ -243,8 +243,8 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 
 				<CourseAddList
 					courses={courses}
-					externalSelectedCourse={selectedCourse}
-					setExternalSelectedCourse={setSelectedCourse}
+					selectedCourse={selectedCourse}
+					setSelectedCourse={setSelectedCourse}
 					multiple
 				/>
 			</motion.div>

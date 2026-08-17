@@ -268,8 +268,8 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 						>
 							<CourseAddList
 								courses={courses}
-								externalSelectedCourse={selectedCourse}
-								setExternalSelectedCourse={setSelectedCourse}
+								selectedCourse={selectedCourse}
+								setSelectedCourse={setSelectedCourse}
 							/>
 						</PopoverContent>
 					</Popover>

@@ -27,19 +27,21 @@ import type {
 	Section,
 } from "@/types/courses";
 
-export default function CourseAddList({
-	courses,
-	externalSelectedCourse,
-	setExternalSelectedCourse,
-	multiple = false,
-}: {
+type CourseAddListProps = {
 	courses: CourseResponse;
-	externalSelectedCourse: Array<AssembledCourseSingleSection>;
-	setExternalSelectedCourse: React.Dispatch<
+	selectedCourse: Array<AssembledCourseSingleSection>;
+	setSelectedCourse: React.Dispatch<
 		React.SetStateAction<Array<AssembledCourseSingleSection>>
 	>;
 	multiple?: boolean;
-}) {
+};
+
+export default function CourseAddList({
+	courses,
+	selectedCourse: externalSelectedCourse,
+	setSelectedCourse: setExternalSelectedCourse,
+	multiple = false,
+}: CourseAddListProps) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 
 	const shouldReduceMotion = useReducedMotion();
@@ -92,6 +94,19 @@ export default function CourseAddList({
 
 		setFilteredCourses(filteredCourses);
 	}, [searchQuery, coursesByTerm.filter, coursesByTerm, selectedCourse]);
+
+	useEffect(() => {
+		const extSelectedCourses = [] as Array<number>;
+		const extSelectedSections = [] as Array<number>;
+
+		externalSelectedCourse.forEach((course) => {
+			extSelectedCourses.push(course.course_id);
+			extSelectedSections.push(course.section.section_id);
+		});
+
+		setSelectedCourse(extSelectedCourses);
+		setSelectedSection(extSelectedSections);
+	}, [externalSelectedCourse]);
 
 	const [scrollParentRef, setScrollParentRef] = useState<HTMLDivElement | null>(
 		null,
@@ -292,16 +307,6 @@ export default function CourseAddList({
 												selectedCourse.includes(showCourseSectionId) &&
 												selectedSection.includes(section.section_id)
 											) {
-												const secIndex = selectedSection.indexOf(
-													section.section_id,
-												);
-
-												setSelectedCourse(
-													selectedCourse.toSpliced(secIndex, 1),
-												);
-												setSelectedSection(
-													selectedSection.toSpliced(secIndex, 1),
-												);
 												setExternalSelectedCourse(
 													externalSelectedCourse.filter(
 														(c) =>
@@ -310,17 +315,6 @@ export default function CourseAddList({
 													),
 												);
 											} else {
-												setSelectedCourse(
-													multiple
-														? [...selectedCourse, showCourseSectionId]
-														: [showCourseSectionId],
-												);
-												setSelectedSection(
-													multiple
-														? [...selectedSection, section.section_id]
-														: [section.section_id],
-												);
-
 												const extCourseData = coursesByTerm.find(
 													(course) => course.course_id === showCourseSectionId,
 												);
