@@ -4,8 +4,21 @@ import clsx from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+} from "@/components/ui/select";
 import useUserStore from "@/stores/user-store";
 
+const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
 const monthNames = [
 	"January",
 	"February",
@@ -21,9 +34,13 @@ const monthNames = [
 	"December",
 ];
 
-const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
+const yearPadding = 10;
 
-export default function MiniCalendar() {
+export default function MiniCalendar({
+	collapsed = false,
+}: {
+	collapsed?: boolean;
+}) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const updataTabDate = useUserStore((state) => state.updateTabDate);
 
@@ -51,6 +68,17 @@ export default function MiniCalendar() {
 		updataTabDate(activeTab.id, nextDate);
 	};
 
+	const changeWeek = (direction: number) => {
+		const nextDate = new Date(selectedDate);
+		nextDate.setDate(selectedDate.getDate() + direction * 7);
+		updataTabDate(activeTab.id, nextDate);
+	};
+
+	const goToToday = () => {
+		setSelectedDate(today);
+		updataTabDate(activeTab.id, today);
+	};
+
 	const goToDay = (day: number) => {
 		const date = new Date(
 			selectedDate.getFullYear(),
@@ -59,6 +87,27 @@ export default function MiniCalendar() {
 		);
 		setSelectedDate(date);
 		updataTabDate(activeTab.id, date);
+	};
+
+	const goToMonth = (month: number) => {
+		const nextDate = new Date(selectedDate);
+
+		let day = nextDate.getDate();
+		if (day === getDaysInMonth(nextDate.getMonth()))
+			day = getDaysInMonth(month);
+
+		nextDate.setMonth(month, day);
+
+		setSelectedDate(nextDate);
+		updataTabDate(activeTab.id, nextDate);
+	};
+
+	const goToYear = (year: number) => {
+		const nextDate = new Date(selectedDate);
+		nextDate.setFullYear(year);
+
+		setSelectedDate(nextDate);
+		updataTabDate(activeTab.id, nextDate);
 	};
 
 	const year = selectedDate.getFullYear();
@@ -79,25 +128,126 @@ export default function MiniCalendar() {
 
 	return (
 		<div>
-			<div className="flex justify-between pt-2 pb-2">
+			<div className="flex justify-between items-center">
 				<Button
-					onClick={() => changeMonth(-1)}
+					onClick={() => (collapsed ? changeWeek(-1) : changeMonth(-1))}
 					variant={"outline"}
 					size={"icon-sm"}
 				>
 					<ChevronLeft />
 				</Button>
-				<span>
-					{monthNames[month]} {year}
-				</span>
+
+				<Popover>
+					<PopoverTrigger render={<Button variant="ghost" />}>
+						{monthNames[month]} {year}
+					</PopoverTrigger>
+
+					<PopoverContent className="w-63.75">
+						<Button variant="outline" onClick={goToToday}>
+							Today
+						</Button>
+
+						<div className="flex flex-row items-center gap-2">
+							<Select
+								value={month || 0}
+								onValueChange={(v) => goToMonth(v || month)}
+							>
+								<SelectTrigger className="flex-1">
+									{monthNames[month]}
+								</SelectTrigger>
+								<SelectContent alignItemWithTrigger={false}>
+									<SelectGroup>
+										{monthNames.map((name, index) => (
+											<SelectItem key={`select-month-${name}`} value={index}>
+												{name}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+
+							<Select
+								value={year}
+								onValueChange={(v) => goToYear(v || today.getFullYear())}
+							>
+								<SelectTrigger className="flex-1">{year}</SelectTrigger>
+								<SelectContent alignItemWithTrigger={false}>
+									<SelectGroup>
+										{Array.from({ length: yearPadding * 2 }).map((_, i) => (
+											<SelectItem
+												key={`select-year-${
+													// biome-ignore lint/suspicious/noArrayIndexKey: only key
+													i
+												}`}
+												value={i + today.getFullYear() - yearPadding}
+											>
+												{i + today.getFullYear() - yearPadding}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+						</div>
+
+						{collapsed && (
+							<Calendar
+								dateToRow={dateToRow}
+								calendarDays={calendarDays}
+								today={today}
+								selectedDate={selectedDate}
+								month={month}
+								year={year}
+								goToDay={goToDay}
+							/>
+						)}
+					</PopoverContent>
+				</Popover>
+
 				<Button
-					onClick={() => changeMonth(1)}
+					onClick={() => (collapsed ? changeWeek(1) : changeMonth(1))}
 					variant={"outline"}
 					size={"icon-sm"}
 				>
 					<ChevronRight />
 				</Button>
 			</div>
+
+			{!collapsed && (
+				<Calendar
+					dateToRow={dateToRow}
+					calendarDays={calendarDays}
+					today={today}
+					selectedDate={selectedDate}
+					month={month}
+					year={year}
+					goToDay={goToDay}
+				/>
+			)}
+		</div>
+	);
+}
+
+type CalendarProps = {
+	dateToRow: Map<number, number>;
+	calendarDays: Array<Date>;
+	today: Date;
+	selectedDate: Date;
+	month: number;
+	year: number;
+	goToDay: (day: number) => void;
+};
+
+function Calendar({
+	dateToRow,
+	calendarDays,
+	today,
+	selectedDate,
+	month,
+	year,
+	goToDay,
+}: CalendarProps) {
+	return (
+		<div>
 			<div className="flex justify-around text-base text-muted-foreground">
 				{weekDays.map((day, index) => (
 					<span key={`${index}_${day}`}>{day}</span>
