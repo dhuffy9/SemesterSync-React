@@ -68,6 +68,7 @@ function Button({
 }
 
 export type ButtonVariants = VariantProps<typeof buttonVariants>["variant"];
+export type ButtonSizes = VariantProps<typeof buttonVariants>["size"];
 export interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
 		VariantProps<typeof buttonVariants> {

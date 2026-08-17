@@ -1,9 +1,10 @@
 "use client";
 import clsx from "clsx";
-import { ArrowLeft, PlusIcon } from "lucide-react";
+import { Palette, PlusIcon } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useState } from "react";
 import { v4 as uuid } from "uuid";
+import DangerModal from "@/components/modals/danger";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import {
@@ -13,6 +14,11 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { createSwipeRightVariant, TRANSITION } from "@/lib/animation";
 import { cn } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
@@ -25,22 +31,22 @@ import CourseAddList, { MeetingsDisplay } from "./course-add-list";
 type EventAddLinkedProps = {
 	courses: CourseResponse;
 	setSelectedOption: React.Dispatch<React.SetStateAction<string>>;
+	closeParentModal: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
-	({ courses, setSelectedOption }, ref) => {
+	({ courses, setSelectedOption, closeParentModal }, ref) => {
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
 		>([]);
 		const [selectedColor, setSelectedColor] = useState<string>("#4285F4");
+		const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
 		const tab = useUserStore((state) => state.getActiveTab());
 		const eventAdd = useUserStore((state) => state.addEvent);
 
 		const shouldReduceMotion = useReducedMotion();
 		const swipeRightVariant = createSwipeRightVariant(shouldReduceMotion);
-
-		console.log(selectedCourse);
 
 		const handleAddCourse = () => {
 			for (const course of selectedCourse) {
@@ -52,6 +58,8 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 					courseId: course.course_id,
 					sectionId: course.section.section_id,
 					termCode: course.term_code,
+
+					staticCourseCredits: parseFloat(course.credits),
 				});
 			}
 
@@ -72,15 +80,34 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Linked Course Event</p>
-					<Button
-						onClick={() => {
-							setSelectedOption("none");
-							setSelectedCourse([]);
+
+					<DangerModal
+						type="proceedReset"
+						isModalOpen={isResetModalOpen}
+						onOpenChange={setIsResetModalOpen}
+						triggerDestructive={selectedCourse.length !== 0}
+						triggerOnClick={() => {
+							if (selectedCourse.length === 0) {
+								setSelectedOption("none");
+								setSelectedCourse([]);
+								setIsResetModalOpen(false);
+							} else {
+								closeParentModal(true);
+							}
 						}}
-						variant="secondary"
-					>
-						<ArrowLeft /> Back
-					</Button>
+						titleChildren="Reset Selected Course"
+						descriptionChildren="Going back will clear the selected courses, are you sure you
+									would like to proceed?"
+						cancelOnClick={() => {
+							closeParentModal(false);
+						}}
+						actionOnClick={() => {
+							setIsResetModalOpen(false);
+							closeParentModal(false);
+							setSelectedCourse([]);
+							setTimeout(() => setSelectedOption("none"), 150);
+						}}
+					/>
 				</div>
 
 				<div className="flex flex-col gap-2 rounded-md border border-border p-2">
@@ -187,13 +214,29 @@ const EventAddLinked = forwardRef<HTMLDivElement, EventAddLinkedProps>(
 								credits
 							</Button>
 
-							<ColorPicker
-								className="size-8"
-								value={selectedColor}
-								onChange={(v) =>
-									setSelectedColor(typeof v === "string" ? v : v.target.value)
-								}
-							/>
+							<Tooltip>
+								<TooltipTrigger
+									render={
+										<ColorPicker
+											className="size-8 p-2"
+											value={selectedColor}
+											onChange={(v) =>
+												setSelectedColor(
+													typeof v === "string" ? v : v.target.value,
+												)
+											}
+										>
+											<Palette
+												className="size-3.5"
+												style={{
+													color: `contrast-color(${selectedColor})`,
+												}}
+											/>
+										</ColorPicker>
+									}
+								/>
+								<TooltipContent>Select Color</TooltipContent>
+							</Tooltip>
 						</div>
 					</div>
 				</div>

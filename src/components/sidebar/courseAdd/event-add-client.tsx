@@ -141,6 +141,7 @@ export default function EventAddModalClient({
 								<EventAddLinked
 									courses={courses}
 									setSelectedOption={setSelectedOption}
+									closeParentModal={setModalContentShown}
 								/>
 							)}
 

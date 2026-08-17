@@ -1,12 +1,32 @@
 "use client";
 
 import clsx from "clsx";
+import { Edit, Palette } from "lucide-react";
+import { useState } from "react";
+import {
+	type EventListCardData,
+	EventListCardUI,
+} from "@/components/events/list-card";
+import DangerModal from "@/components/modals/danger";
+import EditColorModal from "@/components/modals/events/edit-color";
+import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+	HoverCard,
+	HoverCardContent,
+	HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { cn, mergeMeetings, singleLetterDay } from "@/lib/utils";
+import { toast } from "@/components/ui/toast";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn, mergeMeetings } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { CourseResponse } from "@/types/courses";
-import type { MergedMeeting } from "@/types/meetings";
 
 export default function EventListClient({
 	courses,
@@ -46,12 +66,12 @@ export default function EventListClient({
 			</div>
 
 			<ScrollArea className="flex-1 min-h-0 w-full">
-				<div className="py-1 space-y-2">
+				<div className="py-1 flex flex-col gap-2">
 					{events.map((event) => {
 						const cardObject = {
 							color: event.color,
 							eventId: event.eventId,
-						} as ClassCardData;
+						} as EventListCardData;
 
 						switch (event.kind) {
 							case "linked-course": {
@@ -105,8 +125,9 @@ export default function EventListClient({
 
 						return (
 							<ClassCard
-								data={cardObject}
 								key={`sidebar-event-${event.eventId}`}
+								courses={courses}
+								data={cardObject}
 							/>
 						);
 					})}
@@ -116,53 +137,97 @@ export default function EventListClient({
 	);
 }
 
-type ClassCardData = {
-	eventId: string;
-	title: string;
-	description: string;
-	color: string;
-	meetings: Array<MergedMeeting>;
-};
+function ClassCard({
+	courses,
+	data,
+}: {
+	courses: CourseResponse;
+	data: EventListCardData;
+}) {
+	const activeTab = useUserStore((state) => state.getActiveTab());
+	const removeEvent = useUserStore((state) => state.removeEvent);
 
-function ClassCard({ data }: { data: ClassCardData }) {
+	const [hoverCardOpen, setHoverCardOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
 	return (
-		<div
-			className="flex flex-col gap-1 rounded-md p-2 border-2 border-border bg-accent/10 mr-2"
-			style={{
-				borderLeftColor: data.color,
-				background: `color-mix(in oklab, ${data.color} 20%, transparent)`,
-			}}
-		>
-			<p>{data.title}</p>
-			<p className="text-sm">{data.description}</p>
-
-			<Separator className="bg-black/20" />
-
-			<div>
-				{data.meetings.map((meeting) => (
-					<div
-						key={`event-sidebar-${data.eventId}-meeting-${meeting.days}-${meeting.startTime.getTime()}-${meeting.endTime.getTime()}`}
-						className="flex flex-row items-center gap-1 text-sm"
+		<HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
+			<HoverCardTrigger delay={0} closeDelay={0}>
+				<EventListCardUI data={data} />
+			</HoverCardTrigger>
+			<HoverCardContent
+				side="right"
+				align="center"
+				className={"w-max flex flex-col gap-1"}
+			>
+				<Tooltip>
+					<TooltipTrigger
+						render={<Button variant="secondary" size="icon" disabled />}
 					>
-						<p>{meeting.days.map((day) => singleLetterDay(day)).join("")}:</p>
-						<p>
-							{meeting.startTime.toLocaleTimeString("en-US", {
-								hour12: true,
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-						<span className="text-muted-foreground">to</span>
-						<p>
-							{meeting.endTime.toLocaleTimeString("en-US", {
-								hour12: true,
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</p>
-					</div>
-				))}
-			</div>
-		</div>
+						<Edit />
+					</TooltipTrigger>
+					<TooltipContent side="right">Edit</TooltipContent>
+				</Tooltip>
+
+				<EditColorModal
+					courses={courses}
+					eventId={data.eventId}
+					trigger={
+						<Tooltip>
+							<AlertDialogTrigger
+								render={
+									<TooltipTrigger
+										render={<Button variant="secondary" size="icon" />}
+									>
+										<Palette />
+									</TooltipTrigger>
+								}
+							/>
+							<TooltipContent side="right">Change Color</TooltipContent>
+						</Tooltip>
+					}
+					cancelOnClick={() => setHoverCardOpen(false)}
+					actionSecondaryOnClick={() => setHoverCardOpen(false)}
+				/>
+
+				<DangerModal
+					type="delete"
+					isModalOpen={isDeleteModalOpen}
+					onOpenChange={setIsDeleteModalOpen}
+					triggerTooltip="Delete"
+					triggerOnClick={(e) => {
+						if (e.shiftKey) {
+							removeEvent(activeTab.id, data.eventId);
+							toast.add({
+								title: "Event Deleted Successfully",
+								type: "success",
+							});
+							e.stopPropagation();
+						}
+					}}
+					titleChildren={`Delete ${data.title}`}
+					descriptionChildren={
+						<>
+							Are you sure you would like to delete this event with{" "}
+							<b>
+								{data.meetings.length} meeting
+								{data.meetings.length > 1 ? "s" : ""}
+							</b>
+							?
+						</>
+					}
+					cancelOnClick={() => setHoverCardOpen(false)}
+					actionChildren="Delete Event"
+					actionOnClick={() => {
+						removeEvent(activeTab.id, data.eventId);
+						setHoverCardOpen(false);
+						toast.add({
+							title: "Event Deleted Successfully",
+							type: "success",
+						});
+					}}
+				/>
+			</HoverCardContent>
+		</HoverCard>
 	);
 }

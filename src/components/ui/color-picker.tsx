@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import type { ButtonProps } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ interface ColorPickerProps {
 }
 
 const ColorPicker = forwardRef<
-	HTMLInputElement,
+	HTMLButtonElement,
 	Omit<ButtonProps, "value" | "onChange" | "onBlur"> &
 		ColorPickerProps &
 		ButtonProps
@@ -29,7 +29,7 @@ const ColorPicker = forwardRef<
 		{ disabled, value, onChange, onBlur, name, className, size, ...props },
 		forwardedRef,
 	) => {
-		const ref = useForwardedRef(forwardedRef);
+		const inputRef = useRef(null);
 		const [open, setOpen] = useState(false);
 
 		const parsedValue = useMemo(() => {
@@ -42,6 +42,7 @@ const ColorPicker = forwardRef<
 					render={
 						<Button
 							{...props}
+							ref={forwardedRef}
 							className={cn("block", className)}
 							name={name}
 							onClick={() => {
@@ -66,7 +67,7 @@ const ColorPicker = forwardRef<
 						onChange={(e) => {
 							onChange(e?.currentTarget?.value);
 						}}
-						ref={ref}
+						ref={inputRef}
 						value={parsedValue}
 					/>
 				</PopoverContent>
@@ -90,6 +91,7 @@ const ColorPickerInners = forwardRef<
 		<div className={cn("flex flex-col gap-1", className)}>
 			<HexColorPicker color={parsedValue} onChange={onChange} />
 			<Input
+				{...props}
 				maxLength={7}
 				onChange={(e) => {
 					onChange(e?.currentTarget?.value);

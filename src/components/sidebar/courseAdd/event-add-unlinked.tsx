@@ -5,31 +5,18 @@ import { useForm } from "@tanstack/react-form";
 import clsx from "clsx";
 import { format } from "date-fns";
 import {
-	ArrowLeft,
 	CalendarIcon,
 	Check,
 	ChevronDown,
 	Palette,
 	Plus,
-	RotateCw,
 	Trash,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { forwardRef, useEffect, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { v4 as uuidv4 } from "uuid";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogMedia,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import DangerModal from "@/components/modals/danger";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -94,9 +81,10 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 		const [selectedCourse, setSelectedCourse] = useState<
 			Array<AssembledCourseSingleSection>
 		>([]);
+		const [initialDate] = useState(() => new Date());
 		const [dateTemp, setDateTemp] = useState<DateRange | undefined>({
-			from: new Date(),
-			to: new Date(),
+			from: initialDate,
+			to: initialDate,
 		});
 		const [meetingsIsOpen, setMeetingsIsOpen] = useState(true);
 		const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -118,8 +106,8 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 				color: "#4285F4",
 				section: {
 					sectionCode: "",
-					startDate: new Date(),
-					endDate: new Date(),
+					startDate: initialDate,
+					endDate: initialDate,
 					deliveryMethod: "On Campus",
 					meetings: [] as Array<MeetingAddType>,
 				},
@@ -185,7 +173,6 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 		}, [dateTemp, form.setFieldValue]);
 
 		useEffect(() => {
-			console.log(selectedCourse);
 			if (selectedCourse.length !== 1) return;
 
 			const course = selectedCourse[0];
@@ -214,6 +201,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 					building: meeting.building.long,
 					room: meeting.room.name || "",
 					instructors: meeting.instructors.map((instructor) => ({
+						id: uuidv4(),
 						firstName: instructor.first_name,
 						lastName: instructor.last_name,
 					})),
@@ -237,51 +225,34 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 			>
 				<div className="flex flex-row items-center gap-2 justify-between">
 					<p>Add Course Event Manually</p>
-					<AlertDialog open={isBackResetModalOpen}>
-						<AlertDialogTrigger
-							render={<Button variant="secondary" />}
-							onClick={() => {
-								setIsBackResetModalOpen(true);
-								closeParentModal(true);
-							}}
-						>
-							<ArrowLeft /> Back
-						</AlertDialogTrigger>
-						<AlertDialogContent size="sm">
-							<AlertDialogHeader>
-								<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-									<RotateCw />
-								</AlertDialogMedia>
-								<AlertDialogTitle>Reset Entered Information</AlertDialogTitle>
-								<AlertDialogDescription>
-									Going back will clear the entered information, are you sure
-									you would like to proceed?
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel
-									onClick={() => {
-										setIsBackResetModalOpen(false);
-										closeParentModal(false);
-									}}
-								>
-									Cancel
-								</AlertDialogCancel>
-								<AlertDialogAction
-									variant="destructive"
-									onClick={() => {
-										setIsBackResetModalOpen(false);
-										closeParentModal(false);
+
+					<form.Subscribe selector={(state) => state.isDefaultValue}>
+						{(isDefaultValue) => (
+							<DangerModal
+								type="proceedReset"
+								isModalOpen={isBackResetModalOpen}
+								onOpenChange={setIsBackResetModalOpen}
+								triggerDestructive={!isDefaultValue}
+								triggerOnClick={() => {
+									if (isDefaultValue) {
 										form.reset();
 										setSelectedCourse([]);
-										setTimeout(() => setSelectedOption("none"), 150);
-									}}
-								>
-									Proceed & Reset
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
+										setSelectedOption("none");
+									} else {
+										closeParentModal(true);
+									}
+								}}
+								cancelOnClick={() => closeParentModal(false)}
+								actionOnClick={() => {
+									form.reset();
+									setSelectedCourse([]);
+									setIsBackResetModalOpen(false);
+									closeParentModal(false);
+									setTimeout(() => setSelectedOption("none"), 150);
+								}}
+							/>
+						)}
+					</form.Subscribe>
 				</div>
 
 				<div className="flex flex-row items-center gap-2">
@@ -302,16 +273,22 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 							/>
 						</PopoverContent>
 					</Popover>
-					<Button
-						variant="destructive"
-						size="icon"
-						onClick={() => {
-							setIsResetModalOpen(true);
+
+					<DangerModal
+						type="reset"
+						isModalOpen={isResetModalOpen}
+						onOpenChange={setIsResetModalOpen}
+						triggerOnClick={() => {
 							closeParentModal(true);
 						}}
-					>
-						<RotateCw />
-					</Button>
+						cancelOnClick={() => closeParentModal(false)}
+						actionOnClick={() => {
+							form.reset();
+							setSelectedCourse([]);
+							setIsResetModalOpen(false);
+							closeParentModal(false);
+						}}
+					/>
 				</div>
 
 				<Separator />
@@ -622,9 +599,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 																			`section.meetings[${index}].instructors`,
 																		)
 																		.map((instructor, instructorIndex) => (
-																			<div
-																				key={`${instructor.firstName}-${instructor.lastName}-${instructorIndex}`}
-																			>
+																			<div key={`instructor-${instructor.id}`}>
 																				<Field
 																					orientation={"responsive"}
 																					className="@md/field-group:items-end"
@@ -750,6 +725,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 																						`section.meetings[${index}].instructors`,
 																					),
 																					{
+																						id: uuidv4(),
 																						firstName: "",
 																						lastName: "",
 																					},
@@ -1152,6 +1128,7 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 																	days: [] as Array<string>,
 																	instructors: [
 																		{
+																			id: uuidv4(),
 																			firstName: "",
 																			lastName: "",
 																		},
@@ -1239,55 +1216,24 @@ const EventAddUnlinked = forwardRef<HTMLDivElement, EventAddUnlinkedProps>(
 							<Separator />
 
 							<div className="flex flex-row justify-end items-center gap-2">
-								<AlertDialog
-									open={isResetModalOpen}
+								<DangerModal
+									type="reset"
+									triggerChildren="Reset"
+									triggerVariant="secondary"
+									isModalOpen={isResetModalOpen}
 									onOpenChange={setIsResetModalOpen}
-								>
-									<AlertDialogTrigger
-										render={<Button variant="secondary" />}
-										onClick={() => {
-											setIsResetModalOpen(true);
-											closeParentModal(true);
-										}}
-									>
-										Reset
-									</AlertDialogTrigger>
-									<AlertDialogContent size="sm">
-										<AlertDialogHeader>
-											<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-												<RotateCw />
-											</AlertDialogMedia>
-											<AlertDialogTitle>
-												Reset Entered Information
-											</AlertDialogTitle>
-											<AlertDialogDescription>
-												Are you sure you want to reset all the entered
-												information?
-											</AlertDialogDescription>
-										</AlertDialogHeader>
-										<AlertDialogFooter>
-											<AlertDialogCancel
-												onClick={() => {
-													setIsResetModalOpen(false);
-													closeParentModal(false);
-												}}
-											>
-												Cancel
-											</AlertDialogCancel>
-											<AlertDialogAction
-												variant="destructive"
-												onClick={() => {
-													form.reset();
-													setSelectedCourse([]);
-													setIsResetModalOpen(false);
-													closeParentModal(false);
-												}}
-											>
-												Reset
-											</AlertDialogAction>
-										</AlertDialogFooter>
-									</AlertDialogContent>
-								</AlertDialog>
+									triggerOnClick={() => {
+										closeParentModal(true);
+									}}
+									cancelOnClick={() => closeParentModal(false)}
+									actionOnClick={() => {
+										form.reset();
+										setSelectedCourse([]);
+										setIsResetModalOpen(false);
+										closeParentModal(false);
+									}}
+								/>
+
 								<Button type="submit">
 									<Plus /> Add Course
 								</Button>

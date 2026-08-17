@@ -3,6 +3,17 @@ import { twMerge } from "tailwind-merge";
 import { daysOfWeekSchema } from "@/schemas/util";
 import type { MergedMeeting } from "@/types/meetings";
 
+export const defaultColors = [
+	"#c22727",
+	"#873d16",
+	"#278716",
+	"#168776",
+	"#4285F4",
+	"#181687",
+	"#561687",
+	"#871663",
+];
+
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
@@ -16,16 +27,15 @@ export function singleLetterDay(day: string) {
 export function mergeMeetings(meetings: Array<object>) {
 	const newMeetings = [] as Array<MergedMeeting>;
 
-	console.log(meetings);
-
 	for (const meeting of meetings) {
 		if (
 			"day" in meeting &&
 			typeof meeting.day === "string" &&
 			"startTime" in meeting &&
-			typeof meeting.startTime === "string" &&
+			(typeof meeting.startTime === "string" ||
+				meeting.startTime instanceof Date) &&
 			"endTime" in meeting &&
-			typeof meeting.endTime === "string"
+			(typeof meeting.endTime === "string" || meeting.endTime instanceof Date)
 		) {
 			const dayRes = daysOfWeekSchema.safeParse(meeting.day);
 			if (dayRes.success === false) continue;

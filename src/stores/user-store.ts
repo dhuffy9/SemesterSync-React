@@ -74,7 +74,7 @@ const useUserStore = create<UserStore>()(
 										(acc, course) => {
 											switch (course.kind) {
 												case "linked-course":
-													return acc + 3; //FIXME - Need to replace this after updating how course data is distributed through app
+													return acc + course.staticCourseCredits;
 												case "unlinked-course":
 													return acc + course.credits;
 												default:

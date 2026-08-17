@@ -9,18 +9,9 @@ import type { Event } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
 import type { AssembledCourse, CourseResponse } from "@/types/courses";
 import type { CalendarCard, CalendarCards } from "@/types/events";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogMedia,
-	AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { ColorPickerInners } from "./ui/color-picker";
+import { CalendarCardUI } from "./events/calendar-card";
+import DangerModal from "./modals/danger";
+import EditColorModal from "./modals/events/edit-color";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -52,23 +43,10 @@ const days = [
 	{ long: "Saturday", short: "Sat" },
 ];
 
-const defaultColors = [
-	"#c22727",
-	"#873d16",
-	"#278716",
-	"#168776",
-	"#4285F4",
-	"#181687",
-	"#561687",
-	"#871663",
-];
-
 export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const activeTerm = useUserStore((state) => state.activeTerm);
 	const events = useUserStore((state) => state.getEvents(state.activeTab));
-	const getEvent = useUserStore((state) => state.getEvent);
-	const updateEvent = useUserStore((state) => state.updateEvent);
 	const removeEvent = useUserStore((state) => state.removeEvent);
 
 	const today = new Date();
@@ -83,7 +61,6 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 	const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [modalEvent, setModalEvent] = useState<CalendarCard>();
-	const [selectedColor, setSelectedColor] = useState("#4285F4");
 
 	if (typeof courses === "number") return <p>Error loading courses</p>;
 
@@ -198,50 +175,23 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 								<HoverCardTrigger
 									render={
 										<ContextMenuTrigger
-											render={
-												<div
-													className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
-													style={{
-														gridArea: `${event.rowOffset} / ${event.columnOffset} / span ${event.spanHeight} / ${event.columnOffset}`,
-														backgroundColor: `color-mix(in oklab, ${event.color} 20%, var(--background))`,
-														borderColor: event.color,
-													}}
-												/>
-											}
-										/>
-									}
-								>
-									<div className="flex flex-col gap-2">
-										<p>{event.title}</p>
-										<p
-											className={clsx("text-sm", {
-												"italic text-muted-foreground": !event.description,
-											})}
+											style={{
+												gridArea: `${event.rowOffset} / ${event.columnOffset} / span ${event.spanHeight} / ${event.columnOffset}`,
+											}}
 										>
-											{event.description ? event.description : "No Description"}
-										</p>
+											<CalendarCardUI
+												event={{
+													title: event.title,
+													description: event.description,
+													startTime: event.startTime,
+													endTime: event.endTime,
+													color: event.color,
+												}}
+											/>
+										</ContextMenuTrigger>
+									}
+								/>
 
-										<Separator className="bg-black/20" />
-
-										<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
-											<span className="text-foreground">
-												{event.startTime.toLocaleTimeString("en-US", {
-													hour12: true,
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</span>
-											to
-											<span className="text-foreground">
-												{event.endTime.toLocaleTimeString("en-US", {
-													hour12: true,
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</span>
-										</div>
-									</div>
-								</HoverCardTrigger>
 								<HoverCardContent side="right" className="flex flex-col gap-1">
 									{event.kind !== "personal" ? (
 										<>
@@ -315,7 +265,15 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 									) : (
 										<p>
 											<PrimaryText>Location: </PrimaryText>
-											{event.location}
+											<span
+												className={
+													event.location ? "" : "italic text-muted-foreground"
+												}
+											>
+												{event.location
+													? event.location
+													: "No location provided"}
+											</span>
 										</p>
 									)}
 								</HoverCardContent>
@@ -328,7 +286,6 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 									<ContextMenuItem
 										onClick={() => {
 											setIsColorModalOpen(true);
-											setSelectedColor(event.color);
 											setModalEvent(event);
 										}}
 									>
@@ -361,170 +318,51 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 				})}
 			</div>
 
-			<AlertDialog open={isDeleteModalOpen}>
-				{modalEvent && (
-					<AlertDialogContent size="sm">
-						<AlertDialogHeader>
-							<AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-								<Trash />
-							</AlertDialogMedia>
-							<AlertDialogTitle>Delete {modalEvent.title}</AlertDialogTitle>
-							<AlertDialogDescription>
-								You are about to delete this time slot
-								{modalEvent.meetingCount > 1 && (
-									<>
-										, and{" "}
-										<span className="font-bold">
-											{modalEvent.meetingCount - 1} other
-										</span>{" "}
-										associated time slot
-										{modalEvent.meetingCount > 2 && "s"}
-									</>
-								)}
-							</AlertDialogDescription>
-						</AlertDialogHeader>
-						<AlertDialogFooter>
-							<AlertDialogCancel
-								onClick={() => {
-									setModalEvent(undefined);
-									setIsDeleteModalOpen(false);
-								}}
-							>
-								Don't Delete
-							</AlertDialogCancel>
-							<AlertDialogAction
-								variant={"destructive"}
-								disabled={modalEvent === undefined}
-								onClick={() => {
-									removeEvent(activeTab.id, modalEvent.id);
-									setIsDeleteModalOpen(false);
-									setModalEvent(undefined);
-									toast.add({
-										title: "Event Deleted Successfully",
-										type: "success",
-									});
-								}}
-							>
-								Delete Event
-							</AlertDialogAction>
-						</AlertDialogFooter>
-					</AlertDialogContent>
-				)}
-			</AlertDialog>
+			{modalEvent && (
+				<DangerModal
+					type="delete"
+					isModalOpen={isDeleteModalOpen}
+					onOpenChange={setIsDeleteModalOpen}
+					trigger={null}
+					titleChildren={`Delete ${modalEvent.title}`}
+					descriptionChildren={
+						<>
+							You are about to delete this time slot
+							{modalEvent.meetingCount > 1 && (
+								<>
+									, and{" "}
+									<span className="font-bold">
+										{modalEvent.meetingCount - 1} other
+									</span>{" "}
+									associated time slot
+									{modalEvent.meetingCount > 2 && "s"}
+								</>
+							)}
+						</>
+					}
+					cancelOnClick={() => setModalEvent(undefined)}
+					actionChildren="Delete Event"
+					actionOnClick={() => {
+						removeEvent(activeTab.id, modalEvent.id);
+						setModalEvent(undefined);
+						toast.add({
+							title: "Event Deleted Successfully",
+							type: "success",
+						});
+					}}
+				/>
+			)}
 
-			<AlertDialog open={isColorModalOpen}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<AlertDialogTitle>Change Event Color</AlertDialogTitle>
-					</AlertDialogHeader>
-					<AlertDialogContent>
-						{modalEvent && (
-							<div className="flex flex-row items-start gap-4">
-								<div className="flex flex-col gap-2 flex-1">
-									<ColorPickerInners
-										value={selectedColor}
-										onChange={(v) => setSelectedColor(v)}
-									/>
-
-									<div className="flex flex-row items-center gap-2">
-										{defaultColors.map((color) => (
-											<button
-												key={color}
-												type="button"
-												onClick={() => setSelectedColor(color)}
-												className="size-4 rounded-sm cursor-pointer border border-border"
-												style={{ backgroundColor: color }}
-											></button>
-										))}
-									</div>
-
-									<AlertDialogFooter className="">
-										<AlertDialogCancel
-											onClick={() => {
-												setIsColorModalOpen(false);
-												setModalEvent(undefined);
-											}}
-										>
-											Cancel
-										</AlertDialogCancel>
-										<AlertDialogAction
-											onClick={() => {
-												const ev = getEvent(activeTab.id, modalEvent.id);
-
-												if (ev) {
-													ev.color = selectedColor;
-													updateEvent(activeTab.id, ev);
-
-													setIsColorModalOpen(false);
-													setModalEvent(undefined);
-													toast.add({
-														title: "Event Color Changed",
-														type: "success",
-													});
-												} else {
-													toast.add({
-														title: "Event not found",
-														type: "error",
-													});
-													setIsColorModalOpen(false);
-													setModalEvent(undefined);
-												}
-											}}
-										>
-											Save Color
-										</AlertDialogAction>
-									</AlertDialogFooter>
-								</div>
-								<Separator orientation="vertical" />
-								<div className="flex-1 flex flex-col gap-2">
-									<h2 className="font-bold">Event Preview:</h2>
-									<div
-										className="border-l-2 rounded-sm p-2 wrap-break-word overflow-y-scroll"
-										style={{
-											backgroundColor: `color-mix(in oklab, ${selectedColor} 20%, transparent)`,
-											borderColor: selectedColor,
-										}}
-									>
-										<div className="flex flex-col gap-2">
-											<p>{modalEvent.title}</p>
-											<p
-												className={clsx("text-sm", {
-													"italic text-muted-foreground":
-														!modalEvent.description,
-												})}
-											>
-												{modalEvent.description
-													? modalEvent.description
-													: "No Description"}
-											</p>
-
-											<Separator className="bg-black/20" />
-
-											<div className="text-sm text-muted-foreground flex flex-col items-center gap-1">
-												<span className="text-foreground">
-													{modalEvent.startTime.toLocaleTimeString("en-US", {
-														hour12: true,
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</span>
-												to
-												<span className="text-foreground">
-													{modalEvent.endTime.toLocaleTimeString("en-US", {
-														hour12: true,
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</span>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						)}
-					</AlertDialogContent>
-				</AlertDialogContent>
-			</AlertDialog>
+			{modalEvent && (
+				<EditColorModal
+					courses={courses}
+					eventId={modalEvent.id}
+					open={isColorModalOpen}
+					onOpenChange={setIsColorModalOpen}
+					cancelOnClick={() => setModalEvent(undefined)}
+					actionSecondaryOnClick={() => setModalEvent(undefined)}
+				/>
+			)}
 		</div>
 	);
 }
