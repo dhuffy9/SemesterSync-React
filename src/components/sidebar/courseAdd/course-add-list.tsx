@@ -34,6 +34,7 @@ type CourseAddListProps = {
 		React.SetStateAction<Array<AssembledCourseSingleSection>>
 	>;
 	multiple?: boolean;
+	selectedAtTop?: boolean;
 };
 
 export default function CourseAddList({
@@ -41,6 +42,7 @@ export default function CourseAddList({
 	selectedCourse: externalSelectedCourse,
 	setSelectedCourse: setExternalSelectedCourse,
 	multiple = false,
+	selectedAtTop = false,
 }: CourseAddListProps) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 
@@ -92,8 +94,32 @@ export default function CourseAddList({
 				course.course_code.toLowerCase().includes(simplifiedQuery),
 		);
 
+		if (selectedAtTop) {
+			filteredCourses = filteredCourses.sort((a, b) => {
+				if (
+					selectedCourse.includes(a.course_id) &&
+					!selectedCourse.includes(b.course_id)
+				) {
+					return -1;
+				} else if (
+					!selectedCourse.includes(a.course_id) &&
+					selectedCourse.includes(b.course_id)
+				) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+		}
+
 		setFilteredCourses(filteredCourses);
-	}, [searchQuery, coursesByTerm.filter, coursesByTerm, selectedCourse]);
+	}, [
+		searchQuery,
+		coursesByTerm.filter,
+		coursesByTerm,
+		selectedCourse,
+		selectedAtTop,
+	]);
 
 	useEffect(() => {
 		const extSelectedCourses = [] as Array<number>;

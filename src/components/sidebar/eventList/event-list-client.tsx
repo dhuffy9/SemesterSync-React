@@ -9,6 +9,7 @@ import {
 } from "@/components/events/list-card";
 import DangerModal from "@/components/modals/danger";
 import EditColorModal from "@/components/modals/events/edit-color";
+import EditEventModal from "@/components/modals/events/edit-event/edit-event";
 import { AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,13 +25,16 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { TermResponse } from "@/data/terms";
 import { cn, mergeMeetings } from "@/lib/utils";
 import useUserStore from "@/stores/user-store";
 import type { CourseResponse } from "@/types/courses";
 
 export default function EventListClient({
+	terms,
 	courses,
 }: {
+	terms: TermResponse;
 	courses: CourseResponse;
 }) {
 	const credits = useUserStore((state) => state.getActiveTabCredits());
@@ -126,6 +130,7 @@ export default function EventListClient({
 						return (
 							<ClassCard
 								key={`sidebar-event-${event.eventId}`}
+								terms={terms}
 								courses={courses}
 								data={cardObject}
 							/>
@@ -138,9 +143,11 @@ export default function EventListClient({
 }
 
 function ClassCard({
+	terms,
 	courses,
 	data,
 }: {
+	terms: TermResponse;
 	courses: CourseResponse;
 	data: EventListCardData;
 }) {
@@ -160,14 +167,27 @@ function ClassCard({
 				align="center"
 				className={"w-max flex flex-col gap-1"}
 			>
-				<Tooltip>
-					<TooltipTrigger
-						render={<Button variant="secondary" size="icon" disabled />}
-					>
-						<Edit />
-					</TooltipTrigger>
-					<TooltipContent side="right">Edit</TooltipContent>
-				</Tooltip>
+				<EditEventModal
+					eventId={data.eventId}
+					terms={terms}
+					courses={courses}
+					trigger={
+						<Tooltip>
+							<AlertDialogTrigger
+								render={
+									<TooltipTrigger
+										render={<Button variant="secondary" size="icon" />}
+									>
+										<Edit />
+									</TooltipTrigger>
+								}
+							/>
+							<TooltipContent side="right">Edit</TooltipContent>
+						</Tooltip>
+					}
+					cancelOnClick={() => setHoverCardOpen(false)}
+					actionSecondaryOnClick={() => setHoverCardOpen(false)}
+				/>
 
 				<EditColorModal
 					courses={courses}
