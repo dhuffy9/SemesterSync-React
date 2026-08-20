@@ -54,7 +54,6 @@ export default function EditUnlinkedEvent({
 						courseCode: eventData.courseCode,
 						color: eventData.color,
 						credits: eventData.credits.toString(),
-						endDate: eventData.endDate,
 						section: {
 							sectionCode: eventData.sectionCode,
 							deliveryMethod: eventData.deliveryMethod,

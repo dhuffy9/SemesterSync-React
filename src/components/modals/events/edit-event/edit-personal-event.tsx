@@ -54,8 +54,8 @@ export default function EditPersonalEvent({
 						title: eventData.title,
 						description: eventData.description,
 						color: eventData.color,
-						startDate: eventData.startDate,
-						endDate: eventData.endDate,
+						startDate: new Date(eventData.startDate),
+						endDate: new Date(eventData.endDate),
 						meetings: flattenMeetingsForForm(
 							eventData.meetings as unknown as Array<PersonalEventMeeting>,
 						),
