@@ -3,9 +3,11 @@ import AppHeader from "@/components/header/app-header";
 import TabList from "@/components/tab-list";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAllCoursesWithMeetings } from "@/data/courses";
+import { getTerms } from "@/data/terms";
 
 export default async function Page() {
 	const courseResponse = await getAllCoursesWithMeetings();
+	const termsResponse = await getTerms();
 
 	return (
 		<div className="flex h-screen min-w-0 w-full flex-col overflow-hidden">
@@ -15,7 +17,7 @@ export default async function Page() {
 				<TabList />
 
 				<ScrollArea className="h-[89vh] rounded-t-lg">
-					<CalendarContainer courses={courseResponse} />
+					<CalendarContainer courses={courseResponse} terms={termsResponse} />
 				</ScrollArea>
 			</main>
 		</div>
