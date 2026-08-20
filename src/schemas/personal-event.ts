@@ -1,25 +1,27 @@
 import z from "zod";
 
-export const nonCourseMeetingSchema = z.object({
+export const personalEventMeetingSchema = z.object({
 	id: z.uuidv4(),
 	day: z.string(),
-	start_time: z.string(),
-	end_time: z.string(),
+	startTime: z.string(),
+	endTime: z.string(),
 	location: z.string().optional(),
 });
 
-export type NonCourseMeeting = z.infer<typeof nonCourseMeetingSchema>;
+export type PersonalEventMeeting = z.infer<typeof personalEventMeetingSchema>;
 
-export const nonCourseMeetingAddSchema = z.object({
+export const personalEventMeetingAddSchema = z.object({
 	days: z.array(z.string()),
 	startTime: z.string().min(1, "Start time is required"),
 	endTime: z.string().min(1, "End time is required"),
 	location: z.string().optional(),
 });
 
-export type NonCourseMeetingAddType = z.infer<typeof nonCourseMeetingAddSchema>;
+export type PersonalEventMeetingAddType = z.infer<
+	typeof personalEventMeetingAddSchema
+>;
 
-export const nonCourseEventSchema = z.object({
+export const personalEventSchema = z.object({
 	eventId: z.uuidv4(),
 	color: z.string().regex(/^#[0-9a-f]{6}$/i),
 	title: z.string(),
@@ -27,12 +29,12 @@ export const nonCourseEventSchema = z.object({
 	credits: z.string().optional(),
 	term_code: z.string(),
 	term_name: z.string(),
-	startDate: z.date(),
-	endDate: z.date(),
-	meetings: z.array(nonCourseMeetingSchema),
+	startDate: z.coerce.date(),
+	endDate: z.coerce.date(),
+	meetings: z.array(personalEventMeetingSchema),
 });
 
-export const nonCourseAddSchema = z.object({
+export const personalEventAddSchema = z.object({
 	color: z.string().regex(/^#[0-9a-f]{6}$/i),
 	credits: z.string().optional(),
 	title: z.string().min(1, "Title is required"),
@@ -41,8 +43,8 @@ export const nonCourseAddSchema = z.object({
 	startDate: z.date(),
 	endDate: z.date(),
 	meetings: z
-		.array(nonCourseMeetingAddSchema)
+		.array(personalEventMeetingAddSchema)
 		.min(1, "At least one meeting is required"),
 });
 
-export type NonCourseAddType = z.infer<typeof nonCourseAddSchema>;
+export type PersonalEventAddType = z.infer<typeof personalEventAddSchema>;

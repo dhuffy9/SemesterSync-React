@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Edit, Palette, Trash } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
+import type { TermResponse } from "@/data/terms";
 import { cn } from "@/lib/utils";
 import type { Event } from "@/schemas/events";
 import useUserStore from "@/stores/user-store";
@@ -12,6 +13,7 @@ import type { CalendarCard, CalendarCards } from "@/types/events";
 import { CalendarCardUI } from "./events/calendar-card";
 import DangerModal from "./modals/danger";
 import EditColorModal from "./modals/events/edit-color";
+import EditEventModal from "./modals/events/edit-event/edit-event";
 import {
 	ContextMenu,
 	ContextMenuContent,
@@ -43,7 +45,13 @@ const days = [
 	{ long: "Saturday", short: "Sat" },
 ];
 
-export default function ClassList({ courses }: { courses: CourseResponse }) {
+export default function ClassList({
+	terms,
+	courses,
+}: {
+	terms: TermResponse;
+	courses: CourseResponse;
+}) {
 	const activeTab = useUserStore((state) => state.getActiveTab());
 	const activeTerm = useUserStore((state) => state.activeTerm);
 	const events = useUserStore((state) => state.getEvents(state.activeTab));
@@ -58,11 +66,13 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 	firstDayOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay());
 	// ^ sets day of month to the "selected day of month - # days from Sunday"
 
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isColorModalOpen, setIsColorModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [modalEvent, setModalEvent] = useState<CalendarCard>();
 
-	if (typeof courses === "number") return <p>Error loading courses</p>;
+	if (typeof courses === "number" || typeof terms === "number")
+		return <p>Error loading course/terms</p>;
 
 	const structuredEvents = structureEventCards(events, activeTerm, courses);
 
@@ -279,7 +289,12 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 								</HoverCardContent>
 
 								<ContextMenuContent>
-									<ContextMenuItem disabled>
+									<ContextMenuItem
+										onClick={() => {
+											setIsEditModalOpen(true);
+											setModalEvent(event);
+										}}
+									>
 										<Edit /> Edit
 									</ContextMenuItem>
 
@@ -317,6 +332,18 @@ export default function ClassList({ courses }: { courses: CourseResponse }) {
 					);
 				})}
 			</div>
+
+			{modalEvent && (
+				<EditEventModal
+					terms={terms}
+					courses={courses}
+					eventId={modalEvent.id}
+					open={isEditModalOpen}
+					onOpenChange={setIsEditModalOpen}
+					cancelOnClick={() => setModalEvent(undefined)}
+					actionSecondaryOnClick={() => setModalEvent(undefined)}
+				/>
+			)}
 
 			{modalEvent && (
 				<DangerModal

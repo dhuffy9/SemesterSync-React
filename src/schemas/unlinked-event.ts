@@ -81,7 +81,7 @@ export const assembledCourseSchema = z.object({
 	sections: z.array(sectionSchema),
 });
 
-export const courseAddSchema = z.object({
+export const unlinkedEventAddSchema = z.object({
 	color: z.string().regex(/^#[0-9a-f]{6}$/i),
 	courseCode: z.string().min(1, "Course code is required"),
 	courseTitle: z.string().min(1, "Course title is required"),
@@ -97,3 +97,5 @@ export const assembledCourseSingleSectionSchema = assembledCourseSchema
 	.extend({
 		section: sectionSchema,
 	});
+
+export type UnlinkedEventAddType = z.infer<typeof unlinkedEventAddSchema>;

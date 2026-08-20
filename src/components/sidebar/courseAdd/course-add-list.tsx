@@ -27,19 +27,23 @@ import type {
 	Section,
 } from "@/types/courses";
 
-export default function CourseAddList({
-	courses,
-	externalSelectedCourse,
-	setExternalSelectedCourse,
-	multiple = false,
-}: {
+type CourseAddListProps = {
 	courses: CourseResponse;
-	externalSelectedCourse: Array<AssembledCourseSingleSection>;
-	setExternalSelectedCourse: React.Dispatch<
+	selectedCourse: Array<AssembledCourseSingleSection>;
+	setSelectedCourse: React.Dispatch<
 		React.SetStateAction<Array<AssembledCourseSingleSection>>
 	>;
 	multiple?: boolean;
-}) {
+	selectedAtTop?: boolean;
+};
+
+export default function CourseAddList({
+	courses,
+	selectedCourse: externalSelectedCourse,
+	setSelectedCourse: setExternalSelectedCourse,
+	multiple = false,
+	selectedAtTop = false,
+}: CourseAddListProps) {
 	const selectedTerm = useUserStore((state) => state.activeTerm);
 
 	const shouldReduceMotion = useReducedMotion();
@@ -90,8 +94,45 @@ export default function CourseAddList({
 				course.course_code.toLowerCase().includes(simplifiedQuery),
 		);
 
+		if (selectedAtTop) {
+			filteredCourses = filteredCourses.sort((a, b) => {
+				if (
+					selectedCourse.includes(a.course_id) &&
+					!selectedCourse.includes(b.course_id)
+				) {
+					return -1;
+				} else if (
+					!selectedCourse.includes(a.course_id) &&
+					selectedCourse.includes(b.course_id)
+				) {
+					return 1;
+				} else {
+					return 0;
+				}
+			});
+		}
+
 		setFilteredCourses(filteredCourses);
-	}, [searchQuery, coursesByTerm.filter, coursesByTerm, selectedCourse]);
+	}, [
+		searchQuery,
+		coursesByTerm.filter,
+		coursesByTerm,
+		selectedCourse,
+		selectedAtTop,
+	]);
+
+	useEffect(() => {
+		const extSelectedCourses = [] as Array<number>;
+		const extSelectedSections = [] as Array<number>;
+
+		externalSelectedCourse.forEach((course) => {
+			extSelectedCourses.push(course.course_id);
+			extSelectedSections.push(course.section.section_id);
+		});
+
+		setSelectedCourse(extSelectedCourses);
+		setSelectedSection(extSelectedSections);
+	}, [externalSelectedCourse]);
 
 	const [scrollParentRef, setScrollParentRef] = useState<HTMLDivElement | null>(
 		null,
@@ -292,16 +333,6 @@ export default function CourseAddList({
 												selectedCourse.includes(showCourseSectionId) &&
 												selectedSection.includes(section.section_id)
 											) {
-												const secIndex = selectedSection.indexOf(
-													section.section_id,
-												);
-
-												setSelectedCourse(
-													selectedCourse.toSpliced(secIndex, 1),
-												);
-												setSelectedSection(
-													selectedSection.toSpliced(secIndex, 1),
-												);
 												setExternalSelectedCourse(
 													externalSelectedCourse.filter(
 														(c) =>
@@ -310,17 +341,6 @@ export default function CourseAddList({
 													),
 												);
 											} else {
-												setSelectedCourse(
-													multiple
-														? [...selectedCourse, showCourseSectionId]
-														: [showCourseSectionId],
-												);
-												setSelectedSection(
-													multiple
-														? [...selectedSection, section.section_id]
-														: [section.section_id],
-												);
-
 												const extCourseData = coursesByTerm.find(
 													(course) => course.course_id === showCourseSectionId,
 												);
