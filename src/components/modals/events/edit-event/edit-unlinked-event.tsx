@@ -90,7 +90,7 @@ export default function EditUnlinkedEvent({
 			if (typeof terms === "number") return;
 
 			const event: Event = {
-				eventId: uuidv4(),
+				eventId: eventData?.eventId || "",
 				color: formData.color,
 
 				kind: "unlinked-course",
