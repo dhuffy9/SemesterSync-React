@@ -11,15 +11,15 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-} from "./ui/alert-dialog";
-import { Checkbox } from "./ui/checkbox";
+} from "../ui/alert-dialog";
+import { Checkbox } from "../ui/checkbox";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
-} from "./ui/collapsible";
-import { Field, FieldLabel } from "./ui/field";
-import { ScrollArea } from "./ui/scroll-area";
+} from "../ui/collapsible";
+import { Field, FieldLabel } from "../ui/field";
+import { ScrollArea } from "../ui/scroll-area";
 
 export default function DisclaimerModal() {
 	const [open, setOpen] = useState(false);

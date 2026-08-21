@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
-import DisclaimerModal from "@/components/disclaimer-modal";
+import DisclaimerModal from "@/components/modals/disclaimer";
 import AppSidebar from "@/components/sidebar/app-sidebar";
 import Providers from "./providers";
 
