@@ -10,10 +10,12 @@ import {
 	DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Separator } from "../ui/separator";
+import {ShareItem , ShareItemModal} from "./share-item";
 import { BackupItem, BackupItemModal } from "./backup-item";
 import { ImportItem, ImportItemModal } from "./import-item";
 
 export default function ShareDropdown() {
+	const [shareOpen, setShareOpen] = useState(false);
 	const [backupOpen, setBackupOpen] = useState(false);
 	const [importOpen, setImportOpen] = useState(false);
 
@@ -24,11 +26,7 @@ export default function ShareDropdown() {
 					<Share />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" side="top" className="w-36">
-					<DropdownMenuItem>
-						Share
-						<LinkIcon />
-					</DropdownMenuItem>
-
+					<ShareItem setOpen={setShareOpen} />
 					<Separator />
 
 					<BackupItem setOpen={setBackupOpen} />
@@ -36,6 +34,8 @@ export default function ShareDropdown() {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
+
+			<ShareItemModal open={shareOpen} setOpen={setShareOpen} />
 			<BackupItemModal open={backupOpen} setOpen={setBackupOpen} />
 			<ImportItemModal open={importOpen} setOpen={setImportOpen} />
 		</>
