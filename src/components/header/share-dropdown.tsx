@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Separator } from "../ui/separator";
-import ShareItem from "./share-item";
+import {ShareItem , ShareItemModal} from "./share-item";
 import { BackupItem, BackupItemModal } from "./backup-item";
 import { ImportItem, ImportItemModal } from "./import-item";
 
@@ -34,6 +34,8 @@ export default function ShareDropdown() {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
+
+			<ShareItemModal open={shareOpen} setOpen={setShareOpen} />
 			<BackupItemModal open={backupOpen} setOpen={setBackupOpen} />
 			<ImportItemModal open={importOpen} setOpen={setImportOpen} />
 		</>
