@@ -29,7 +29,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 const startHour = 6; // Inclusive, 6 AM
 const endHour = 23; // Exclusive, 11 PM (up until 22:59)
 
-const slots = 12; // 5 min per slot
+const slots = 6; // 10 min per slot
 const minsPerSlot = 60 / slots;
 const cols = 7;
 const rows = (endHour - startHour) * slots;
